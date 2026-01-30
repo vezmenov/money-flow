@@ -97,6 +97,10 @@ ul {
 }
 
 .form-card {
+  display: grid;
+  gap: 1.5rem;
+}
+
 .categories {
   display: grid;
   gap: 1.5rem;
@@ -149,6 +153,11 @@ ul {
   border-radius: 999px;
   border: none;
   background: #0ea5e9;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .categories__header {
   display: grid;
   gap: 0.35rem;
@@ -203,6 +212,8 @@ ul {
 
 .primary-button:hover {
   background: #0284c7;
+}
+
 .category-form__submit:hover {
   background: #1d4ed8;
 }
