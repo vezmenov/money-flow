@@ -1,4 +1,6 @@
 <script>
+  import Categories from './routes/Categories.svelte';
+
   const features = [
     'Svelte + Vite',
     'Готовая точка входа',
@@ -23,4 +25,6 @@
       {/each}
     </ul>
   </section>
+
+  <Categories />
 </main>
