@@ -68,3 +68,64 @@ ul {
   display: grid;
   gap: 0.5rem;
 }
+
+.form-card {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.entry-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.field-label {
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.entry-form input,
+.entry-form select,
+.entry-form textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid #cbd5f5;
+  font: inherit;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.entry-form textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.entry-form input:focus,
+.entry-form select:focus,
+.entry-form textarea:focus {
+  outline: 2px solid #38bdf8;
+  border-color: transparent;
+}
+
+.primary-button {
+  justify-self: start;
+  padding: 0.65rem 1.5rem;
+  border-radius: 999px;
+  border: none;
+  background: #0ea5e9;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-button:hover {
+  background: #0284c7;
+}
