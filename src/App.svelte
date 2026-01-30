@@ -1,5 +1,6 @@
 <script>
   import Router from 'svelte-spa-router';
+  import Nav from './components/Nav.svelte';
   import Home from './routes/Home.svelte';
   import Categories from './routes/Categories.svelte';
   import Dashboards from './routes/Dashboards.svelte';
@@ -12,11 +13,7 @@
 </script>
 
 <div class="app">
-  <nav class="nav">
-    <a href="#/">Главная</a>
-    <a href="#/categories">Категории</a>
-    <a href="#/dashboards">Дашборды</a>
-  </nav>
+  <Nav />
 
   <Router {routes} />
 </div>
