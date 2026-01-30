@@ -1,30 +1,22 @@
 <script>
+  import Router from 'svelte-spa-router';
+  import Home from './routes/Home.svelte';
   import Categories from './routes/Categories.svelte';
+  import Dashboards from './routes/Dashboards.svelte';
 
-  const features = [
-    'Svelte + Vite',
-    'Готовая точка входа',
-    'Структура для будущих страниц',
-  ];
+  const routes = {
+    '/': Home,
+    '/categories': Categories,
+    '/dashboards': Dashboards,
+  };
 </script>
 
-<main class="app">
-  <header class="hero">
-    <p class="eyebrow">Money Flow</p>
-    <h1>Базовая архитектура проекта на Svelte</h1>
-    <p class="subtitle">
-      Каркас проекта готов — можно добавлять страницы, модули и бизнес-логику.
-    </p>
-  </header>
+<div class="app">
+  <nav class="nav">
+    <a href="#/">Главная</a>
+    <a href="#/categories">Категории</a>
+    <a href="#/dashboards">Дашборды</a>
+  </nav>
 
-  <section class="card">
-    <h2>Что уже есть</h2>
-    <ul>
-      {#each features as feature}
-        <li>{feature}</li>
-      {/each}
-    </ul>
-  </section>
-
-  <Categories />
-</main>
+  <Router {routes} />
+</div>
