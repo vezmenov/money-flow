@@ -1,23 +1,23 @@
 <script>
-  let categories = [];
+  import { addCategory, categories } from '../stores/financeStore';
+
   let categoryName = '';
   let categoryColor = '#3b82f6';
 
-  const addCategory = () => {
+  const handleAddCategory = async () => {
     const trimmedName = categoryName.trim();
 
     if (!trimmedName) {
       return;
     }
 
-    categories = [
-      ...categories,
-      {
-        id: crypto.randomUUID(),
-        name: trimmedName,
-        color: categoryColor,
-      },
-    ];
+    await addCategory({
+      id: crypto.randomUUID(),
+      name: trimmedName,
+      color: categoryColor,
+      type: 'expense',
+      createdAt: new Date().toISOString(),
+    });
 
     categoryName = '';
     categoryColor = '#3b82f6';
@@ -30,7 +30,7 @@
     <p>Создавайте категории расходов и доходов.</p>
   </header>
 
-  <form class="category-form" on:submit|preventDefault={addCategory}>
+  <form class="category-form" on:submit|preventDefault={handleAddCategory}>
     <label class="category-form__field">
       <span>Цвет</span>
       <input type="color" bind:value={categoryColor} aria-label="Цвет категории" />
@@ -50,11 +50,11 @@
   </form>
 
   <div class="categories__list">
-    {#if categories.length === 0}
+    {#if $categories.length === 0}
       <p class="categories__empty">Категории пока не добавлены.</p>
     {:else}
       <ul>
-        {#each categories as category (category.id)}
+        {#each $categories as category (category.id)}
           <li class="category-card">
             <span class="category-card__color" style={`background-color: ${category.color}`}></span>
             <span class="category-card__name">{category.name}</span>
