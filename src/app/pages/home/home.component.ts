@@ -2,6 +2,7 @@ import { Component, effect } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FinanceStoreService, Transaction } from '../../data/finance-store.service';
+import { createClientId } from '../../utils/id';
 
 @Component({
   selector: 'app-home',
@@ -148,7 +149,7 @@ export class HomeComponent {
     }
 
     const payload: Transaction = {
-      id: crypto.randomUUID(),
+      id: createClientId(),
       amount: numericAmount,
       currency: this.currency,
       categoryId: this.selectedCategoryId,

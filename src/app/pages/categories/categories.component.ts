@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FinanceStoreService } from '../../data/finance-store.service';
+import { createClientId } from '../../utils/id';
 
 @Component({
   selector: 'app-categories',
@@ -63,7 +64,7 @@ export class CategoriesComponent {
     }
 
     await this.store.addCategory({
-      id: crypto.randomUUID(),
+      id: createClientId(),
       name: trimmedName,
       color: this.categoryColor,
       type: 'expense',
