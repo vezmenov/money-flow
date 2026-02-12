@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^1.10.0",
+    "@angular/build": "^18.2.0",
     "@angular/compiler-cli": "^18.2.0",
     "typescript": "^5.5.4",
     "vite": "^6.0.0"
