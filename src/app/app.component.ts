@@ -18,6 +18,8 @@ export class AppComponent implements OnInit {
   constructor(private readonly store: FinanceStoreService) {}
 
   ngOnInit(): void {
-    void this.store.initStore();
+    void this.store.initStore().catch((error) => {
+      console.error('Failed to initialize finance store', error);
+    });
   }
 }
