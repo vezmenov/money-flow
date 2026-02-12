@@ -7,6 +7,26 @@
   </head>
   <body>
     <app-root></app-root>
+    <script>
+      window.__MONEY_FLOW_BUILD__ = { version: 'unknown', builtAt: 'unknown' };
+      fetch('/build-info.json', { cache: 'no-store' })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((info) => {
+          if (!info || typeof info !== 'object') {
+            return;
+          }
+          window.__MONEY_FLOW_BUILD__ = {
+            version: String(info.version ?? 'unknown'),
+            builtAt: String(info.builtAt ?? 'unknown'),
+          };
+          console.info(
+            `[money-flow] build ${window.__MONEY_FLOW_BUILD__.version} (${window.__MONEY_FLOW_BUILD__.builtAt})`,
+          );
+        })
+        .catch((error) => {
+          console.error('Failed to load build-info.json', error);
+        });
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
