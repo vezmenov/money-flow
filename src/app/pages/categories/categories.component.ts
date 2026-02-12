@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
+import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FinanceStoreService } from '../../data/finance-store.service';
 
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, NgIf, NgFor],
   template: `
     <section class="categories">
       <header class="categories__header">

@@ -1,11 +1,12 @@
 import { Component, effect } from '@angular/core';
+import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FinanceStoreService, Transaction } from '../../data/finance-store.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, NgIf, NgFor],
   template: `
     <main class="app">
       <section class="card form-card">

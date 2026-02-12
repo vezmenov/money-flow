@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { NgFor, NgIf } from '@angular/common';
 import { FinanceStoreService } from '../../data/finance-store.service';
 
 type CategorySummary = {
@@ -9,6 +10,7 @@ type CategorySummary = {
 @Component({
   selector: 'app-dashboards',
   standalone: true,
+  imports: [NgIf, NgFor],
   template: `
     <main class="page">
       <header>
