@@ -8,7 +8,7 @@ ENV VITE_BUILD_TIME=$APP_BUILD_TIME
 
 WORKDIR /app
 COPY package*.json ./
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+RUN npm ci
 
 COPY . .
 RUN npm run build
