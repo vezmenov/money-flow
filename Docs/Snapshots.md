@@ -13,6 +13,8 @@ npm run ui:snap
 - подменяет `GET /api/categories` и `GET /api/transactions` фикстурами
 - замораживает “сейчас” и отключает анимации/переходы (для детерминизма)
 - снимает PNG для страниц в двух viewport: `desktop` и `mobile`
+  - desktop: `fullPage`
+  - mobile: только видимая область (без “склейки” fixed-элементов вроде bottom-bar)
 
 ## Куда кладет
 - `Docs/Snapshots/latest/*.png`
@@ -29,4 +31,3 @@ npm run ui:snap
 Если у тебя нестандартная установка браузера:
 - поставь `PLAYWRIGHT_CHANNEL` (например `chrome`/`msedge`)
 - или просто установи Chrome нормально, чтобы Playwright его нашел
-

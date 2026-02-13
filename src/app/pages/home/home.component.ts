@@ -96,7 +96,8 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
 	          <div class="home__filters-actions">
 	            <div class="home__range" aria-label="Текущий период">
 	              <span class="home__range-label">Период:</span>
-	              <span class="home__range-value">{{ period().start }} → {{ period().end }}</span>
+	              <span class="home__range-value home__range-value--long">{{ period().start }} → {{ period().end }}</span>
+	              <span class="home__range-value home__range-value--short">{{ periodShortLabel() }}</span>
 	            </div>
 	            <app-button
 	              variant="secondary"
@@ -107,7 +108,7 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
 	              (click)="exportXlsx()"
 	            >
 	              <app-icon name="download" [size]="18" [decorative]="true" />
-	              Экспорт
+	              <span class="home__export-label">Экспорт</span>
 	            </app-button>
 	          </div>
 	        </div>
@@ -201,13 +202,15 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
                 создано
               </p>
             </div>
-            <app-icon-button
-              icon="plus"
-              ariaLabel="Добавить регулярную трату"
-              variant="success"
-              (click)="openAddModal('recurring')"
-            />
-          </header>
+	            <app-icon-button
+	              icon="plus"
+	              ariaLabel="Добавить регулярную трату"
+	              variant="success"
+	              [size]="42"
+	              [iconSize]="20"
+	              (click)="openAddModal('recurring')"
+	            />
+	          </header>
 
           <ng-container *ngIf="recurringExpenses().length > 0; else emptyRecurring">
             <div class="home-recurring__kpis">
@@ -358,6 +361,10 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
 	      gap: 10px;
 	    }
 
+	    .home__export-label {
+	      white-space: nowrap;
+	    }
+
 	    .home__chips {
 	      display: flex;
 	      flex-wrap: wrap;
@@ -378,16 +385,24 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
       white-space: nowrap;
     }
 
-    .home__range-label {
-      color: color-mix(in srgb, var(--text, #0b1020) 52%, transparent);
-      font-weight: 750;
-    }
+	    .home__range-label {
+	      color: color-mix(in srgb, var(--text, #0b1020) 52%, transparent);
+	      font-weight: 750;
+	    }
 
-    .home__dates {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+	    .home__range-value {
+	      font-variant-numeric: tabular-nums;
+	    }
+
+	    .home__range-value--short {
+	      display: none;
+	    }
+
+	    .home__dates {
+	      display: grid;
+	      grid-template-columns: 1fr 1fr;
+	      gap: 12px;
+	    }
 
     .home__kpis {
       display: grid;
@@ -716,19 +731,40 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
       }
     }
 
-    @media (max-width: 699.98px) {
-      .home__kpis {
-        grid-template-columns: 1fr;
-      }
-      .home__dates {
-        grid-template-columns: 1fr;
-      }
+		    @media (max-width: 699.98px) {
+		      .home__kpis {
+		        grid-template-columns: 1fr;
+		      }
+		      .home__dates {
+		        grid-template-columns: 1fr;
+		      }
 
-      .home-recurring__kpis {
-        grid-template-columns: 1fr;
-      }
-    }
-  `,
+		      .home__filters-actions {
+		        width: 100%;
+		        justify-content: space-between;
+		      }
+
+		      .home__range-label {
+		        display: none;
+		      }
+
+		      .home__range-value--long {
+		        display: none;
+		      }
+
+		      .home__range-value--short {
+		        display: inline;
+		      }
+
+		      .home__export-label {
+		        display: none;
+		      }
+
+		      .home-recurring__kpis {
+	        grid-template-columns: 1fr;
+	      }
+	    }
+	  `,
 })
 export class HomeComponent {
   readonly categories = this.store.categories;
@@ -978,6 +1014,25 @@ export class HomeComponent {
     void this.store.exportXlsx().catch((error) => {
       console.error('Failed to export XLSX', error);
     });
+  }
+
+  periodShortLabel() {
+    const period = this.period();
+    const start = String(period.start ?? '');
+    const end = String(period.end ?? '');
+
+    if (start.length !== 10 || end.length !== 10) {
+      return `${start} → ${end}`.trim();
+    }
+
+    const fmt = (iso: string) => `${iso.slice(8, 10)}.${iso.slice(5, 7)}`;
+    const fmtYear = (iso: string) => `${fmt(iso)}.${iso.slice(2, 4)}`;
+
+    if (start.slice(0, 4) !== end.slice(0, 4)) {
+      return `${fmtYear(start)} → ${fmtYear(end)}`;
+    }
+
+    return `${fmt(start)} → ${fmt(end)}`;
   }
 
   recurringMonthLabel() {

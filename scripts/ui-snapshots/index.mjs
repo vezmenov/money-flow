@@ -222,7 +222,7 @@ async function main() {
           await page.waitForTimeout(250);
           await page.screenshot({
             path: path.join(OUTPUT_DIR, `${route.name}-${vp.name}.png`),
-            fullPage: true,
+            fullPage: !vp.isMobile,
           });
 
           if (route.name === 'home') {
@@ -231,7 +231,7 @@ async function main() {
             await page.waitForTimeout(150);
           await page.screenshot({
             path: path.join(OUTPUT_DIR, `home-add-modal-${vp.name}.png`),
-            fullPage: true,
+            fullPage: false,
           });
           await page.keyboard.press('Escape');
 
@@ -240,7 +240,7 @@ async function main() {
             await page.waitForTimeout(150);
             await page.screenshot({
               path: path.join(OUTPUT_DIR, `home-add-recurring-modal-${vp.name}.png`),
-              fullPage: true,
+              fullPage: false,
             });
             await page.keyboard.press('Escape');
           }
