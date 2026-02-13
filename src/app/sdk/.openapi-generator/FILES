@@ -11,9 +11,13 @@ git_push.sh
 index.ts
 model/category.ts
 model/createCategory.ts
+model/createRecurringExpense.ts
 model/createTransaction.ts
 model/healthGet200Response.ts
 model/models.ts
+model/recurringExpense.ts
+model/recurringExpenseForMonth.ts
+model/timezoneSettings.ts
 model/transaction.ts
 model/updateCategory.ts
 model/updateTransaction.ts

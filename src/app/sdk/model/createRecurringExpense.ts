@@ -9,13 +9,11 @@
  */
 
 
-export interface Transaction { 
-    id: string;
-    source?: string;
-    idempotencyKey?: string | null;
+export interface CreateRecurringExpense { 
     categoryId: string;
     amount: number;
+    dayOfMonth: number;
     date: string;
-    description?: string | null;
+    description?: string;
 }
 

@@ -9,13 +9,14 @@
  */
 
 
-export interface Transaction { 
+export interface RecurringExpenseForMonth { 
     id: string;
-    source?: string;
-    idempotencyKey?: string | null;
     categoryId: string;
     amount: number;
+    dayOfMonth: number;
     date: string;
     description?: string | null;
+    scheduledDate: string;
+    committed: boolean;
 }
 

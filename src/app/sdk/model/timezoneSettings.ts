@@ -9,13 +9,7 @@
  */
 
 
-export interface Transaction { 
-    id: string;
-    source?: string;
-    idempotencyKey?: string | null;
-    categoryId: string;
-    amount: number;
-    date: string;
-    description?: string | null;
+export interface TimezoneSettings { 
+    utcOffset: string;
 }
 
