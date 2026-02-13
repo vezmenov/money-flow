@@ -35,20 +35,19 @@ import { IconName } from '../icon/icons';
       width: 64px;
       height: 64px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.35);
+      border: 1px solid color-mix(in srgb, var(--accent-green-dark, #059669) 70%, transparent);
       background:
         linear-gradient(
           to bottom,
-          color-mix(in srgb, var(--accent-green, #2ee58f) 75%, white 25%),
-          color-mix(in srgb, var(--accent-green, #2ee58f) 70%, black 30%)
+          var(--accent-green-bright, #34d399),
+          var(--accent-green, #10b981)
         );
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.55),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.28),
-        0 22px 44px rgba(16, 185, 129, 0.22),
-        0 18px 34px rgba(2, 6, 23, 0.18);
+        inset 0 1px 2px rgba(255, 255, 255, 0.5),
+        0 2px 8px rgba(16, 185, 129, 0.5),
+        0 18px 34px rgba(0, 0, 0, 0.18);
       cursor: pointer;
-      color: rgba(255, 255, 255, 0.95);
+      color: rgba(6, 78, 59, 0.96);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -95,11 +94,11 @@ import { IconName } from '../icon/icons';
     .app-fab__btn:focus-visible {
       outline: none;
       box-shadow:
-        0 0 0 4px rgba(43, 124, 255, 0.22),
-        0 0 0 8px rgba(43, 124, 255, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.28),
-        0 18px 34px rgba(2, 6, 23, 0.18);
+        0 0 0 4px color-mix(in srgb, var(--accent-blue, #3b82f6) 22%, transparent),
+        0 0 0 8px color-mix(in srgb, var(--accent-blue, #3b82f6) 12%, transparent),
+        inset 0 1px 2px rgba(255, 255, 255, 0.5),
+        0 2px 8px rgba(16, 185, 129, 0.45),
+        0 18px 34px rgba(0, 0, 0, 0.18);
     }
 
     .app-fab__btn:disabled {
@@ -114,4 +113,3 @@ export class FabComponent {
   @Input() ariaLabel = 'Добавить трату';
   @Input() disabled = false;
 }
-

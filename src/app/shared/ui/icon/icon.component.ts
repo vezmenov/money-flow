@@ -2,8 +2,6 @@ import { NgFor } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { ICONS, IconName } from './icons';
 
-let nextId = 0;
-
 @Component({
   selector: 'app-icon',
   standalone: true,
@@ -24,14 +22,23 @@ let nextId = 0;
       [attr.aria-label]="!decorative ? label : null"
       focusable="false"
     >
-      <defs>
-        <linearGradient [attr.id]="gradientId" x1="0" y1="0" x2="0" y2="24">
-          <stop offset="0" stop-color="rgba(255,255,255,0.95)" />
-          <stop offset="1" stop-color="rgba(255,255,255,0.45)" />
-        </linearGradient>
-      </defs>
+      <g class="app-icon__stroke" fill="none" stroke="currentColor">
+        <path
+          *ngFor="let d of icon.paths"
+          [attr.d]="d"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </g>
 
-      <g fill="none" [attr.stroke]="'url(#' + gradientId + ')'">
+      <g
+        class="app-icon__highlight"
+        aria-hidden="true"
+        fill="none"
+        stroke="rgba(255, 255, 255, 0.36)"
+        transform="translate(0,-0.4)"
+      >
         <path
           *ngFor="let d of icon.paths"
           [attr.d]="d"
@@ -50,11 +57,17 @@ let nextId = 0;
       width: var(--app-icon-size, 18px);
       height: var(--app-icon-size, 18px);
       color: inherit;
-      filter: drop-shadow(0 1px 0 rgba(2, 6, 23, 0.15));
+      filter:
+        drop-shadow(0 1px 0 rgba(255, 255, 255, 0.18))
+        drop-shadow(0 1px 0 rgba(2, 6, 23, 0.12));
     }
 
     .app-icon__svg {
       display: block;
+    }
+
+    .app-icon__stroke {
+      opacity: 0.92;
     }
   `,
 })
@@ -64,14 +77,8 @@ export class IconComponent {
   @Input() title?: string;
   @Input() decorative = false;
 
-  private readonly uid = `app-icon-${++nextId}`;
-
   get icon() {
     return ICONS[this.name] ?? ICONS.home;
-  }
-
-  get gradientId() {
-    return `${this.uid}-g`;
   }
 
   get label() {

@@ -46,18 +46,17 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
       gap: 0.5rem;
       width: 100%;
       border-radius: var(--radius-control, 12px);
-      border: 1px solid rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(0, 0, 0, 0.15);
       font: inherit;
       font-weight: 650;
       letter-spacing: 0.01em;
-      color: var(--text, #0b1020);
+      color: color-mix(in srgb, var(--text, #1a1a2e) 92%, transparent);
       cursor: pointer;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.85),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.12),
-        var(--shadow-ambient, 0 10px 22px rgba(2, 6, 23, 0.12));
+        inset 0 1px 1px rgba(255, 255, 255, 0.75),
+        0 1px 3px rgba(0, 0, 0, 0.12);
       transition:
         transform 140ms ease,
         box-shadow 140ms ease,
@@ -78,49 +77,52 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 
     :host([data-variant='primary']) .app-button__btn {
       color: rgba(255, 255, 255, 0.95);
-      border-color: rgba(255, 255, 255, 0.3);
+      border-color: color-mix(in srgb, var(--accent-blue-dark, #1d4ed8) 80%, transparent);
       background:
         linear-gradient(
           to bottom,
-          color-mix(in srgb, var(--accent-blue, #2b7cff) 92%, white 8%),
-          color-mix(in srgb, var(--accent-blue, #2b7cff) 82%, black 18%)
+          var(--accent-blue, #3b82f6),
+          var(--accent-blue-dark, #1d4ed8)
         );
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.5),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.25),
-        0 18px 34px rgba(24, 75, 170, 0.22),
-        var(--shadow-ambient, 0 10px 22px rgba(2, 6, 23, 0.12));
+        inset 0 1px 2px rgba(255, 255, 255, 0.5),
+        0 2px 8px rgba(59, 130, 246, 0.5);
     }
 
     :host([data-variant='secondary']) .app-button__btn {
       background:
         linear-gradient(
           to bottom,
-          rgba(255, 255, 255, 0.82),
-          rgba(230, 240, 255, 0.66)
+          var(--plastic-bg-top, #f3f4f6),
+          var(--plastic-bg-bot, #e5e7eb)
         );
+      border-color: rgba(0, 0, 0, 0.12);
+      color: rgba(55, 65, 81, 0.95);
+      box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.75),
+        0 1px 3px rgba(0, 0, 0, 0.12);
     }
 
     :host([data-variant='ghost']) .app-button__btn {
-      background: rgba(255, 255, 255, 0.18);
-      border-color: rgba(255, 255, 255, 0.42);
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.45);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.65),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.08);
+        inset 0 1px 1px rgba(255, 255, 255, 0.7),
+        0 1px 3px rgba(0, 0, 0, 0.08);
     }
 
     :host([data-selected='true']) .app-button__btn {
       background:
         linear-gradient(
           to bottom,
-          rgba(255, 255, 255, 0.86),
-          rgba(214, 233, 255, 0.74)
+          var(--accent-blue, #3b82f6),
+          var(--accent-blue-dark, #1d4ed8)
         );
-      border-color: rgba(255, 255, 255, 0.62);
+      border-color: color-mix(in srgb, var(--accent-blue-dark, #1d4ed8) 80%, transparent);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.9),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.12),
-        0 10px 22px rgba(2, 6, 23, 0.12);
+        inset 0 1px 2px rgba(255, 255, 255, 0.5),
+        0 2px 8px rgba(59, 130, 246, 0.5);
+      color: rgba(255, 255, 255, 0.96);
     }
 
     :host([data-size='sm']) .app-button__btn {
@@ -144,6 +146,19 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
       filter: saturate(1.05);
     }
 
+    :host([data-variant='primary']) .app-button__btn:hover:not(:disabled),
+    :host([data-selected='true']) .app-button__btn:hover:not(:disabled) {
+      background:
+        linear-gradient(
+          to bottom,
+          var(--accent-blue-soft, #60a5fa),
+          var(--accent-blue, #3b82f6)
+        );
+      box-shadow:
+        inset 0 1px 2px rgba(255, 255, 255, 0.55),
+        0 3px 12px rgba(59, 130, 246, 0.6);
+    }
+
     .app-button__btn:hover:not(:disabled) .app-button__glint {
       opacity: 0.9;
     }
@@ -151,18 +166,30 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
     .app-button__btn:active:not(:disabled) {
       transform: translateY(0);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.6),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.18),
-        0 9px 18px rgba(2, 6, 23, 0.1);
+        inset 0 1px 2px rgba(0, 0, 0, 0.16),
+        0 1px 2px rgba(0, 0, 0, 0.14);
+    }
+
+    :host([data-variant='primary']) .app-button__btn:active:not(:disabled),
+    :host([data-selected='true']) .app-button__btn:active:not(:disabled) {
+      background:
+        linear-gradient(
+          to bottom,
+          var(--accent-blue-dark, #1d4ed8),
+          var(--accent-blue-darker, #1e40af)
+        );
+      box-shadow:
+        inset 0 1px 3px rgba(0, 0, 0, 0.3),
+        0 1px 3px rgba(59, 130, 246, 0.3);
     }
 
     .app-button__btn:focus-visible {
       outline: none;
       box-shadow:
-        0 0 0 3px rgba(43, 124, 255, 0.24),
-        0 0 0 6px rgba(43, 124, 255, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.75),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.12);
+        0 0 0 3px color-mix(in srgb, var(--accent-blue, #3b82f6) 26%, transparent),
+        0 0 0 6px color-mix(in srgb, var(--accent-blue, #3b82f6) 14%, transparent),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7),
+        0 1px 3px rgba(0, 0, 0, 0.16);
     }
 
     .app-button__btn:disabled {
@@ -187,9 +214,15 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
       width: 16px;
       height: 16px;
       border-radius: 999px;
-      border: 2px solid rgba(255, 255, 255, 0.55);
-      border-top-color: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(0, 0, 0, 0.22);
+      border-top-color: rgba(0, 0, 0, 0.06);
       animation: app-button-spin 700ms linear infinite;
+    }
+
+    :host([data-variant='primary']) .app-button__spinner,
+    :host([data-selected='true']) .app-button__spinner {
+      border-color: rgba(255, 255, 255, 0.6);
+      border-top-color: rgba(255, 255, 255, 0.1);
     }
 
     @keyframes app-button-spin {

@@ -69,14 +69,14 @@ let nextModalId = 0;
 
     .app-modal__sheet {
       position: relative;
-      border-radius: var(--radius-card, 18px);
-      border: 1px solid rgba(255, 255, 255, 0.55);
-      background: rgba(255, 255, 255, 0.55);
+      border-radius: var(--radius-card, 20px);
+      border: 1px solid var(--glass-border-strong, rgba(255, 255, 255, 0.5));
+      background: var(--glass-bg-strong, rgba(255, 255, 255, 0.65));
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.7),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.1),
-        0 26px 60px rgba(2, 6, 23, 0.25);
-      backdrop-filter: blur(var(--glass-blur, 18px));
+        inset 0 1px 1px rgba(255, 255, 255, 0.9),
+        0 4px 12px rgba(0, 0, 0, 0.14),
+        0 1px 3px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(var(--glass-blur-strong, 20px)) saturate(var(--glass-saturate, 180%));
       overflow: hidden;
     }
 
@@ -91,6 +91,15 @@ let nextModalId = 0;
       opacity: 0.9;
     }
 
+    .app-modal__sheet::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.35;
+    }
+
     .app-modal__header {
       position: relative;
       z-index: 1;
@@ -99,7 +108,7 @@ let nextModalId = 0;
       justify-content: space-between;
       gap: 0.75rem;
       padding: 1rem 1rem 0.75rem 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+      border-bottom: 1px solid var(--glass-divider, rgba(0, 0, 0, 0.06));
     }
 
     .app-modal__title {
@@ -112,36 +121,39 @@ let nextModalId = 0;
     .app-modal__close {
       width: 36px;
       height: 36px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
       background:
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.7), rgba(240, 248, 255, 0.55));
+        linear-gradient(to bottom, rgba(249, 250, 251, 1), rgba(229, 231, 235, 1));
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.75),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.1);
+        inset 0 1px 1px rgba(255, 255, 255, 0.9),
+        0 1px 3px rgba(0, 0, 0, 0.14);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      color: rgba(75, 85, 99, 0.98);
       -webkit-tap-highlight-color: transparent;
       transition: transform 140ms ease, filter 140ms ease;
     }
 
     .app-modal__close:hover {
       transform: translateY(-1px);
-      filter: saturate(1.05);
+      filter: saturate(1.06);
     }
 
     .app-modal__close:active {
       transform: translateY(0);
+      background:
+        linear-gradient(to bottom, rgba(229, 231, 235, 1), rgba(209, 213, 219, 1));
     }
 
     .app-modal__close:focus-visible {
       outline: none;
       box-shadow:
-        0 0 0 3px rgba(43, 124, 255, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.75),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.1);
+        0 0 0 3px color-mix(in srgb, var(--accent-blue, #3b82f6) 24%, transparent),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9),
+        0 1px 3px rgba(0, 0, 0, 0.14);
     }
 
     .app-modal__body {
@@ -237,4 +249,3 @@ export class ModalComponent implements AfterViewInit {
     }
   }
 }
-

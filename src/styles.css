@@ -1,22 +1,39 @@
 :root {
-  --radius-card: 18px;
+  --radius-card: 20px;
   --radius-control: 12px;
   --radius-pill: 999px;
 
-  --glass-blur: 18px;
-  --glass-bg: rgba(255, 255, 255, 0.58);
-  --glass-border: rgba(255, 255, 255, 0.62);
-  --glass-divider: rgba(255, 255, 255, 0.28);
+  --glass-blur: 16px;
+  --glass-blur-strong: 20px;
+  --glass-saturate: 180%;
+  --glass-bg: rgba(255, 255, 255, 0.6); /* #fff9 */
+  --glass-bg-strong: rgba(255, 255, 255, 0.65); /* #ffffffa6 */
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-border-strong: rgba(255, 255, 255, 0.5);
+  --glass-divider: rgba(0, 0, 0, 0.06);
 
-  --text: #0b1020;
-  --muted: rgba(11, 16, 32, 0.62);
+  --plastic-bg-top: #f3f4f6;
+  --plastic-bg-bot: #e5e7eb;
+  --plastic-border: rgba(0, 0, 0, 0.12);
 
-  --accent-blue: #2b7cff;
-  --accent-green: #2ee58f;
+  --text: #1a1a2e;
+  --muted: #6b7280;
+
+  --accent-blue: #3b82f6;
+  --accent-blue-soft: #60a5fa;
+  --accent-blue-dark: #1d4ed8;
+  --accent-blue-darker: #1e40af;
+
+  --accent-green: #10b981;
+  --accent-green-soft: #6ee7b7;
+  --accent-green-bright: #34d399;
+  --accent-green-dark: #059669;
   --danger: #ef4444;
+  --danger-soft: #f87171;
+  --danger-dark: #dc2626;
 
-  --shadow-ambient: 0 12px 28px rgba(2, 6, 23, 0.12);
-  --shadow-lift: 0 22px 54px rgba(2, 6, 23, 0.18);
+  --shadow-ambient: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-lift: 0 6px 20px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
 
   --page-pad: 18px;
   --sidebar-w: 272px;
@@ -43,7 +60,7 @@ body {
 body {
   margin: 0;
   min-height: 100dvh;
-  background: #e8f0ff;
+  background: #0f5196;
   color: var(--text);
   overflow-x: hidden;
   position: relative;
@@ -56,12 +73,18 @@ body::before {
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(55% 45% at 18% 10%, rgba(43, 124, 255, 0.26), transparent 65%),
-    radial-gradient(55% 55% at 82% 18%, rgba(46, 229, 143, 0.18), transparent 65%),
-    radial-gradient(65% 55% at 30% 78%, rgba(99, 102, 241, 0.16), transparent 70%),
-    radial-gradient(55% 55% at 78% 78%, rgba(56, 189, 248, 0.14), transparent 68%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(236, 244, 255, 0.96));
-  filter: saturate(1.02);
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.25) 0%, transparent 40%),
+    linear-gradient(
+      135deg,
+      #0f5196,
+      #1872cc,
+      #2e95d8,
+      var(--accent-green, #10b981),
+      var(--accent-green-bright, #34d399)
+    );
+  filter: saturate(1.05);
   animation: app-bg-drift 22s ease-in-out infinite alternate;
 }
 
@@ -71,7 +94,7 @@ body::after {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.12;
+  opacity: 0.1;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
 }
@@ -127,10 +150,9 @@ a {
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(2, 6, 23, 0.08),
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
     var(--shadow-ambient);
-  backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   overflow: hidden;
 }
 
@@ -144,6 +166,16 @@ a {
     radial-gradient(120% 85% at 14% 0%, rgba(255, 255, 255, 0.55), transparent 52%),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
   opacity: 0.95;
+}
+
+.glass-surface::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.3;
 }
 
 .glass-surface > * {
@@ -180,12 +212,12 @@ a {
   width: 100%;
   padding: 0.65rem 0.8rem;
   border-radius: var(--radius-control);
-  border: 1px solid rgba(255, 255, 255, 0.58);
+  border: 1px solid var(--plastic-border);
   background:
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.88), rgba(231, 243, 255, 0.72));
+    linear-gradient(to bottom, var(--plastic-bg-top), var(--plastic-bg-bot));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(2, 6, 23, 0.08);
+    inset 0 1px 1px rgba(255, 255, 255, 0.75),
+    0 1px 3px rgba(0, 0, 0, 0.1);
   color: var(--text);
   font: inherit;
   transition: filter 140ms ease, box-shadow 140ms ease;
@@ -199,9 +231,9 @@ a {
 .app-control--select {
   padding-right: 2.2rem;
   background-image:
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.88), rgba(231, 243, 255, 0.72)),
-    radial-gradient(circle at 50% 50%, rgba(11, 16, 32, 0.65) 38%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(11, 16, 32, 0.65) 38%, transparent 40%);
+    linear-gradient(to bottom, var(--plastic-bg-top), var(--plastic-bg-bot)),
+    radial-gradient(circle at 50% 50%, rgba(26, 26, 46, 0.7) 38%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(26, 26, 46, 0.7) 38%, transparent 40%);
   background-repeat: no-repeat;
   background-size:
     auto,
@@ -216,10 +248,10 @@ a {
 .app-control:focus {
   outline: none;
   box-shadow:
-    0 0 0 3px rgba(43, 124, 255, 0.22),
-    0 0 0 6px rgba(43, 124, 255, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(2, 6, 23, 0.08);
+    0 0 0 3px color-mix(in srgb, var(--accent-blue, #3b82f6) 26%, transparent),
+    0 0 0 6px color-mix(in srgb, var(--accent-blue, #3b82f6) 14%, transparent),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8),
+    0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .app-control:hover:not(:disabled) {
@@ -233,7 +265,7 @@ a {
 
 .app-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.28);
+  background: var(--glass-divider);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -43,25 +43,46 @@ import { IconName } from '../../shared/ui/icon/icons';
       align-items: center;
       gap: 0.75rem;
       padding: 0.7rem 0.75rem;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      color: color-mix(in srgb, var(--text, #0b1020) 86%, transparent);
+      border-radius: var(--radius-control, 12px);
+      border: 1px solid var(--plastic-border, rgba(0, 0, 0, 0.12));
+      color: color-mix(in srgb, var(--text, #1a1a2e) 78%, transparent);
       text-decoration: none;
       font-weight: 650;
       letter-spacing: 0.01em;
-      background: rgba(255, 255, 255, 0.08);
-      transition: transform 140ms ease, filter 140ms ease, background 140ms ease, border-color 140ms ease;
+      background:
+        linear-gradient(
+          to bottom,
+          var(--plastic-bg-top, #f3f4f6),
+          var(--plastic-bg-bot, #e5e7eb)
+        );
+      box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.75),
+        0 1px 2px rgba(0, 0, 0, 0.08);
+      transition:
+        transform 140ms ease,
+        filter 140ms ease,
+        background 140ms ease,
+        box-shadow 140ms ease,
+        border-color 140ms ease;
       -webkit-tap-highlight-color: transparent;
     }
 
     .app-nav__item:hover {
       filter: saturate(1.03);
-      background: rgba(255, 255, 255, 0.14);
-      border-color: rgba(255, 255, 255, 0.32);
+      transform: translateY(-1px);
+      background:
+        linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 1),
+          var(--plastic-bg-bot, #e5e7eb)
+        );
+      box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.85),
+        0 2px 6px rgba(0, 0, 0, 0.12);
     }
 
     .app-nav__item:active {
-      transform: translateY(1px);
+      transform: translateY(0);
     }
 
     .app-nav__icon {
@@ -71,12 +92,17 @@ import { IconName } from '../../shared/ui/icon/icons';
       align-items: center;
       justify-content: center;
       border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(0, 0, 0, 0.12);
       background:
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.55), rgba(231, 243, 255, 0.22));
+        linear-gradient(
+          to bottom,
+          rgba(249, 250, 251, 1),
+          rgba(229, 231, 235, 1)
+        );
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.7),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.08);
+        inset 0 1px 1px rgba(255, 255, 255, 0.8),
+        0 1px 3px rgba(0, 0, 0, 0.1);
+      color: rgba(26, 26, 46, 0.9);
     }
 
     .app-nav__label {
@@ -89,25 +115,21 @@ import { IconName } from '../../shared/ui/icon/icons';
       background:
         linear-gradient(
           to bottom,
-          rgba(255, 255, 255, 0.78),
-          rgba(214, 233, 255, 0.64)
+          var(--accent-blue, #3b82f6),
+          var(--accent-blue-dark, #1d4ed8)
         );
-      border-color: rgba(255, 255, 255, 0.55);
+      border-color: color-mix(in srgb, var(--accent-blue-dark, #1d4ed8) 80%, transparent);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.85),
-        inset 0 -1px 0 rgba(2, 6, 23, 0.1),
-        0 12px 24px rgba(2, 6, 23, 0.14);
-      color: rgba(11, 16, 32, 0.92);
+        inset 0 1px 2px rgba(255, 255, 255, 0.5),
+        0 2px 8px rgba(59, 130, 246, 0.6);
+      color: rgba(255, 255, 255, 0.96);
     }
 
     .app-nav__item.is-active .app-nav__icon {
-      background:
-        linear-gradient(
-          to bottom,
-          color-mix(in srgb, var(--accent-blue, #2b7cff) 18%, white 82%),
-          rgba(214, 233, 255, 0.7)
-        );
-      border-color: rgba(255, 255, 255, 0.62);
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.22);
+      color: rgba(255, 255, 255, 0.96);
     }
 
     @media (min-width: 700px) {
