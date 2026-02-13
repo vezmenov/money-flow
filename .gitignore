@@ -6,5 +6,4 @@ dist
 /.idea/.gitignore
 /.idea/modules.xml
 /.idea/money-flow.iml
-/package-lock.json
 /.idea/vcs.xml
