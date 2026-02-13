@@ -299,6 +299,47 @@ export class DefaultService extends BaseService {
     }
 
     /**
+     * Export data to XLSX
+     * @endpoint get /export/xlsx
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public exportXlsxGet(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', context?: HttpContext, transferCache?: boolean}): Observable<Blob>;
+    public exportXlsxGet(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Blob>>;
+    public exportXlsxGet(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Blob>>;
+    public exportXlsxGet(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let localVarPath = `/export/xlsx`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: "blob",
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Health check
      * @endpoint get /health
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
