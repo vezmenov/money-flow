@@ -1,177 +1,730 @@
-import { Component, effect } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
+import { Component, computed, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FinanceStoreService, Transaction } from '../../data/finance-store.service';
-import { createClientId } from '../../utils/id';
+import {
+  filterExpenseTransactions,
+  filterTransactionsByPeriod,
+  formatMoney,
+  getLastDaysRange,
+  getMonthRange,
+  groupExpensesByCategory,
+  groupExpensesByDay,
+  normalizePeriod,
+  parseIsoDate,
+} from '../../features/dashboard/dashboard.selectors';
+import { AddExpenseModalComponent } from '../../features/transactions/add-expense-modal/add-expense-modal.component';
+import { BarChartComponent } from '../../shared/charts/bar-chart.component';
+import { DonutChartComponent } from '../../shared/charts/donut-chart.component';
+import { LineChartComponent } from '../../shared/charts/line-chart.component';
+import { ButtonComponent } from '../../shared/ui/button/button.component';
+import { FabComponent } from '../../shared/ui/button/fab.component';
+import { DateInputComponent } from '../../shared/ui/forms/date-input.component';
+import { FieldComponent } from '../../shared/ui/forms/field.component';
+import { IconComponent } from '../../shared/ui/icon/icon.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule, NgIf, NgFor],
+  imports: [
+    FormsModule,
+    NgIf,
+    NgFor,
+    ButtonComponent,
+    FieldComponent,
+    DateInputComponent,
+    LineChartComponent,
+    DonutChartComponent,
+    BarChartComponent,
+    FabComponent,
+    IconComponent,
+    AddExpenseModalComponent,
+  ],
   template: `
-    <main class="app">
-      <section class="card form-card">
-        <h2>Добавить операцию</h2>
-        <form class="entry-form" (ngSubmit)="handleSubmit()">
-          <label class="field">
-            <span class="field-label">Категория</span>
-            <select name="category" [(ngModel)]="selectedCategoryId">
-              <option *ngIf="categories().length === 0" value="" disabled>Нет категорий</option>
-              <option *ngFor="let category of categories()" [value]="category.id">
-                {{ category.name }}
-              </option>
-            </select>
-          </label>
+    <main class="home">
+      <header class="glass-header home__header">
+        <p class="glass-header__eyebrow">Money Flow</p>
+        <h1 class="glass-header__title">Дашборд трат</h1>
+        <p class="glass-header__subtitle">
+          Динамика, категории и быстрый ввод. Стекло снаружи, пластик внутри.
+        </p>
+      </header>
 
-          <label class="field">
-            <span class="field-label">Сумма</span>
-            <input
-              name="amount"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              [(ngModel)]="amount"
-            />
-          </label>
+      <section class="glass-surface home__filters">
+        <div class="home__filters-top">
+          <div class="home__chips" role="group" aria-label="Период">
+            <app-button
+              variant="ghost"
+              size="sm"
+              [selected]="preset() === '7d'"
+              type="button"
+              (click)="setPreset('7d')"
+            >
+              7 дней
+            </app-button>
+            <app-button
+              variant="ghost"
+              size="sm"
+              [selected]="preset() === '30d'"
+              type="button"
+              (click)="setPreset('30d')"
+            >
+              30 дней
+            </app-button>
+            <app-button
+              variant="ghost"
+              size="sm"
+              [selected]="preset() === 'month'"
+              type="button"
+              (click)="setPreset('month')"
+            >
+              Месяц
+            </app-button>
+            <app-button
+              variant="ghost"
+              size="sm"
+              [selected]="preset() === 'custom'"
+              type="button"
+              (click)="setPreset('custom')"
+            >
+              Свои даты
+            </app-button>
+          </div>
 
-          <label class="field">
-            <span class="field-label">Дата</span>
-            <input name="date" type="date" [(ngModel)]="transactionDate" />
-          </label>
-
-          <label class="field">
-            <span class="field-label">Валюта</span>
-            <select name="currency" [(ngModel)]="currency">
-              <option *ngFor="let item of currencies" [value]="item">{{ item }}</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span class="field-label">Заметка</span>
-            <textarea
-              name="note"
-              rows="3"
-              placeholder="Короткий комментарий"
-              [(ngModel)]="note"
-            ></textarea>
-          </label>
-
-          <button class="primary-button" type="submit">Сохранить</button>
-        </form>
-      </section>
-
-      <section class="card">
-        <h2>Траты за период</h2>
-        <div class="entry-form">
-          <label class="field">
-            <span class="field-label">С</span>
-            <input name="periodStart" type="date" [(ngModel)]="periodStart" />
-          </label>
-          <label class="field">
-            <span class="field-label">По</span>
-            <input name="periodEnd" type="date" [(ngModel)]="periodEnd" />
-          </label>
+          <div class="home__range" aria-label="Текущий период">
+            <span class="home__range-label">Период:</span>
+            <span class="home__range-value">{{ period().start }} → {{ period().end }}</span>
+          </div>
         </div>
 
-        <ng-container *ngIf="filteredTransactions.length === 0; else transactionsList">
-          <p>За выбранный период операций нет.</p>
-        </ng-container>
-        <ng-template #transactionsList>
-          <ul>
-            <li *ngFor="let transaction of filteredTransactions; trackBy: trackTransaction">
-              {{ transaction.date }} ·
-              {{ categoryMap.get(transaction.categoryId)?.name ?? 'Без категории' }} ·
-              {{ transaction.amount.toFixed(2) }} {{ transaction.currency }}
-            </li>
-          </ul>
-        </ng-template>
+        <div *ngIf="preset() === 'custom'" class="home__dates">
+          <app-field label="С">
+            <app-date-input name="customStart" [(ngModel)]="customStart" />
+          </app-field>
+          <app-field label="По">
+            <app-date-input name="customEnd" [(ngModel)]="customEnd" />
+          </app-field>
+        </div>
       </section>
+
+      <section class="home__kpis">
+        <div class="glass-surface home-kpi">
+          <div class="home-kpi__label">Траты</div>
+          <div class="home-kpi__value">{{ totalLabel() }}</div>
+          <div class="home-kpi__meta" *ngIf="currencyNote()">{{ currencyNote() }}</div>
+        </div>
+        <div class="glass-surface home-kpi">
+          <div class="home-kpi__label">В среднем в день</div>
+          <div class="home-kpi__value">{{ avgLabel() }}</div>
+          <div class="home-kpi__meta">{{ dayCount() }} дн.</div>
+        </div>
+        <div class="glass-surface home-kpi">
+          <div class="home-kpi__label">Фокус</div>
+          <div class="home-kpi__value">{{ focusLabel() }}</div>
+          <div class="home-kpi__meta">
+            <ng-container *ngIf="activeCategory(); else topCat">
+              <app-button variant="ghost" size="sm" type="button" (click)="clearCategoryFilter()">
+                Сбросить
+              </app-button>
+            </ng-container>
+            <ng-template #topCat>Топ категория за период</ng-template>
+          </div>
+        </div>
+      </section>
+
+      <section class="home__grid">
+        <section class="glass-surface home-card home-card--wide">
+          <header class="home-card__header">
+            <h2 class="home-card__title">Динамика</h2>
+            <p class="home-card__hint">
+              {{ activeCategory() ? 'Выбрана категория: ' + activeCategory()!.name : 'Все траты' }}
+            </p>
+          </header>
+          <app-line-chart
+            [labels]="lineChartLabels()"
+            [values]="lineChartValues()"
+            ariaLabel="Траты по дням"
+          />
+        </section>
+
+        <section class="glass-surface home-card">
+          <header class="home-card__header">
+            <h2 class="home-card__title">Категории</h2>
+            <p class="home-card__hint">Нажми на сектор, чтобы сфокусироваться</p>
+          </header>
+          <app-donut-chart
+            [labels]="donutLabels()"
+            [values]="donutValues()"
+            [colors]="donutColors()"
+            [selectedIndex]="donutSelectedIndex()"
+            ariaLabel="Доли категорий"
+            (sliceClick)="handleDonutClick($event.index)"
+          />
+        </section>
+
+        <section class="glass-surface home-card">
+          <header class="home-card__header">
+            <h2 class="home-card__title">Топ</h2>
+            <p class="home-card__hint">Категории с максимальными тратами</p>
+          </header>
+          <app-bar-chart
+            [labels]="barLabels()"
+            [values]="barValues()"
+            [colors]="barColors()"
+            [selectedIndex]="barSelectedIndex()"
+            ariaLabel="Топ категорий"
+            (barClick)="handleBarClick($event.index)"
+          />
+        </section>
+
+        <section class="glass-surface home-card home-card--wide">
+          <header class="home-card__header home-card__header--row">
+            <div>
+              <h2 class="home-card__title">Последние траты</h2>
+              <p class="home-card__hint" *ngIf="activeCategory()">
+                Фильтр: <strong>{{ activeCategory()!.name }}</strong>
+              </p>
+              <p class="home-card__hint" *ngIf="!activeCategory()">За выбранный период</p>
+            </div>
+            <app-button
+              *ngIf="activeCategory()"
+              variant="ghost"
+              size="sm"
+              type="button"
+              (click)="clearCategoryFilter()"
+            >
+              Сбросить фильтр
+            </app-button>
+          </header>
+
+          <ng-container *ngIf="latestTransactions().length > 0; else emptyList">
+            <ul class="home-list">
+              <li *ngFor="let transaction of latestTransactions(); trackBy: trackTransaction" class="home-list__item">
+                <span
+                  class="home-list__dot"
+                  [style.background]="categoryDot(transaction.categoryId)"
+                  aria-hidden="true"
+                ></span>
+                <div class="home-list__main">
+                  <div class="home-list__top">
+                    <button
+                      class="home-list__category"
+                      type="button"
+                      (click)="setCategoryFilter(transaction.categoryId)"
+                    >
+                      {{ categoryName(transaction.categoryId) }}
+                    </button>
+                    <span class="home-list__amount">
+                      {{ formatAmount(transaction.amount, transaction.currency) }}
+                    </span>
+                  </div>
+                  <div class="home-list__bottom">
+                    <span class="home-list__date">{{ transaction.date }}</span>
+                    <span class="home-list__note" *ngIf="transaction.note">{{ transaction.note }}</span>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </ng-container>
+
+          <ng-template #emptyList>
+            <div class="home-empty">
+              <app-icon name="dashboard" [size]="22" [decorative]="true" />
+              <p class="home-empty__title">Пока пусто</p>
+              <p class="home-empty__text">Добавь первую трату через большой плюс справа снизу.</p>
+            </div>
+          </ng-template>
+        </section>
+      </section>
+
+      <app-fab (click)="openAddModal()" />
+      <app-add-expense-modal [open]="isAddOpen()" (openChange)="isAddOpen.set($event)" />
     </main>
+  `,
+  styles: `
+    .home {
+      display: grid;
+      gap: 18px;
+      padding-bottom: 22px;
+    }
+
+    .home__header {
+      padding: 6px 2px 2px 2px;
+    }
+
+    .home__filters {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .home__filters-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .home__chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .home__range {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 0.45rem 0.65rem;
+      border-radius: var(--radius-pill, 999px);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.16);
+      color: color-mix(in srgb, var(--text, #0b1020) 68%, transparent);
+      font-weight: 650;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    .home__range-label {
+      color: color-mix(in srgb, var(--text, #0b1020) 52%, transparent);
+      font-weight: 750;
+    }
+
+    .home__dates {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .home__kpis {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .home-kpi {
+      padding: 14px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .home-kpi__label {
+      font-size: 0.78rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--text, #0b1020) 48%, transparent);
+    }
+
+    .home-kpi__value {
+      font-size: 1.25rem;
+      font-weight: 860;
+      letter-spacing: -0.02em;
+    }
+
+    .home-kpi__meta {
+      color: color-mix(in srgb, var(--text, #0b1020) 58%, transparent);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .home__grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1.25fr 0.75fr;
+      grid-auto-rows: minmax(120px, auto);
+      align-items: start;
+    }
+
+    .home-card {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .home-card--wide {
+      grid-column: 1 / -1;
+    }
+
+    .home-card__header {
+      display: grid;
+      gap: 4px;
+    }
+
+    .home-card__header--row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .home-card__title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 860;
+      letter-spacing: -0.01em;
+    }
+
+    .home-card__hint {
+      margin: 0;
+      color: color-mix(in srgb, var(--text, #0b1020) 58%, transparent);
+      font-size: 0.9rem;
+    }
+
+    .home-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .home-list__item {
+      display: grid;
+      grid-template-columns: 12px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.12);
+      transition: filter 140ms ease, background 140ms ease;
+    }
+
+    .home-list__item:hover {
+      filter: saturate(1.02);
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .home-list__dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.65);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      margin-top: 4px;
+    }
+
+    .home-list__top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .home-list__category {
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background:
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.74), rgba(230, 240, 255, 0.45));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 rgba(2, 6, 23, 0.08);
+      border-radius: var(--radius-pill, 999px);
+      padding: 0.35rem 0.55rem;
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+      color: rgba(11, 16, 32, 0.9);
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 140ms ease;
+    }
+
+    .home-list__category:hover {
+      transform: translateY(-1px);
+    }
+
+    .home-list__amount {
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+
+    .home-list__bottom {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: baseline;
+      color: color-mix(in srgb, var(--text, #0b1020) 62%, transparent);
+      font-size: 0.9rem;
+    }
+
+    .home-list__date {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .home-empty {
+      display: grid;
+      gap: 6px;
+      justify-items: start;
+      padding: 8px 2px;
+      color: color-mix(in srgb, var(--text, #0b1020) 65%, transparent);
+    }
+
+    .home-empty__title {
+      margin: 0;
+      font-weight: 900;
+      color: rgba(11, 16, 32, 0.92);
+    }
+
+    .home-empty__text {
+      margin: 0;
+      max-width: 42rem;
+    }
+
+    @media (max-width: 900px) {
+      .home__grid {
+        grid-template-columns: 1fr;
+      }
+      .home-card--wide {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 699.98px) {
+      .home__kpis {
+        grid-template-columns: 1fr;
+      }
+      .home__dates {
+        grid-template-columns: 1fr;
+      }
+    }
   `,
 })
 export class HomeComponent {
-  readonly currencies = ['RUB', 'USD', 'EUR'];
   readonly categories = this.store.categories;
   readonly transactions = this.store.transactions;
 
-  selectedCategoryId = '';
-  amount = '';
-  currency = this.currencies[0];
-  note = '';
-  transactionDate = new Date().toISOString().slice(0, 10);
-
-  periodStart = this.getMonthRange(new Date()).start;
-  periodEnd = this.getMonthRange(new Date()).end;
+  readonly preset = signal<'7d' | '30d' | 'month' | 'custom'>('month');
+  private readonly customStartSignal = signal(getMonthRange(new Date()).start);
+  private readonly customEndSignal = signal(getMonthRange(new Date()).end);
+  readonly activeCategoryId = signal<string | null>(null);
+  readonly isAddOpen = signal(false);
 
   constructor(private readonly store: FinanceStoreService) {
     effect(() => {
-      const categories = this.categories();
-      if (categories.length && !this.selectedCategoryId) {
-        this.selectedCategoryId = categories[0].id;
+      const activeId = this.activeCategoryId();
+      if (!activeId) {
+        return;
+      }
+      const ids = new Set(this.baseExpenses().map((t) => t.categoryId));
+      if (!ids.has(activeId)) {
+        this.activeCategoryId.set(null);
       }
     });
   }
 
-  get categoryMap() {
-    return new Map(this.categories().map((category) => [category.id, category]));
-  }
+  readonly period = computed(() => {
+    const preset = this.preset();
+    if (preset === '7d') {
+      return getLastDaysRange(7);
+    }
+    if (preset === '30d') {
+      return getLastDaysRange(30);
+    }
+    if (preset === 'custom') {
+      return normalizePeriod({ start: this.customStart, end: this.customEnd });
+    }
+    return getMonthRange(new Date());
+  });
 
-  get filteredTransactions() {
-    return this.transactions()
-      .filter((transaction) => {
-        if (this.periodStart && transaction.date < this.periodStart) {
-          return false;
+  readonly periodTransactions = computed(() =>
+    filterTransactionsByPeriod(this.transactions(), this.period().start, this.period().end),
+  );
+
+  readonly baseExpenses = computed(() => filterExpenseTransactions(this.periodTransactions(), this.categories()));
+
+  readonly scopeExpenses = computed(() => {
+    const id = this.activeCategoryId();
+    const base = this.baseExpenses();
+    if (!id) {
+      return base;
+    }
+    return base.filter((t) => t.categoryId === id);
+  });
+
+  readonly dayCount = computed(() => {
+    const start = parseIsoDate(this.period().start);
+    const end = parseIsoDate(this.period().end);
+    if (!start || !end) {
+      return 0;
+    }
+    const ms = end.getTime() - start.getTime();
+    return Math.max(0, Math.floor(ms / 86_400_000) + 1);
+  });
+
+  readonly total = computed(() => this.scopeExpenses().reduce((sum, t) => sum + t.amount, 0));
+
+  readonly currencyNote = computed(() => {
+    const set = new Set(this.scopeExpenses().map((t) => t.currency));
+    if (set.size <= 1) {
+      return '';
+    }
+    return 'В периоде несколько валют (без конвертации)';
+  });
+
+  readonly primaryCurrency = computed(() => {
+    const first = this.scopeExpenses().at(0)?.currency;
+    return first ?? 'RUB';
+  });
+
+  readonly totalLabel = computed(() => {
+    const value = this.total();
+    const note = this.currencyNote();
+    if (note) {
+      return value.toFixed(2);
+    }
+    return formatMoney(value, this.primaryCurrency());
+  });
+
+  readonly avgLabel = computed(() => {
+    const days = this.dayCount();
+    if (!days) {
+      return '—';
+    }
+    const avg = this.total() / days;
+    const note = this.currencyNote();
+    if (note) {
+      return avg.toFixed(2);
+    }
+    return formatMoney(avg, this.primaryCurrency());
+  });
+
+  readonly categoryTotals = computed(() => groupExpensesByCategory(this.baseExpenses(), this.categories(), 6));
+
+  readonly activeCategory = computed(() => {
+    const id = this.activeCategoryId();
+    if (!id) {
+      return null;
+    }
+    return this.categories().find((c) => c.id === id) ?? null;
+  });
+
+  readonly focusLabel = computed(() => {
+    const active = this.activeCategory();
+    if (active) {
+      return active.name;
+    }
+    const top = this.categoryTotals().at(0);
+    return top ? top.label : '—';
+  });
+
+  readonly lineData = computed(() => groupExpensesByDay(this.scopeExpenses(), this.period().start, this.period().end));
+
+  readonly lineChartLabels = computed(() => this.lineData().labels.map((d) => d.slice(5)));
+  readonly lineChartValues = computed(() => this.lineData().values);
+
+  readonly donutLabels = computed(() => this.categoryTotals().map((i) => i.label));
+  readonly donutValues = computed(() => this.categoryTotals().map((i) => i.total));
+  readonly donutColors = computed(() => this.categoryTotals().map((i) => i.color ?? 'rgba(43, 124, 255, 0.55)'));
+  readonly donutSelectedIndex = computed(() => {
+    const activeId = this.activeCategoryId();
+    if (!activeId) {
+      return null;
+    }
+    const idx = this.categoryTotals().findIndex((i) => i.categoryId === activeId);
+    return idx >= 0 ? idx : null;
+  });
+
+  readonly barTotals = computed(() => groupExpensesByCategory(this.baseExpenses(), this.categories(), 5));
+  readonly barLabels = computed(() => this.barTotals().map((i) => i.label));
+  readonly barValues = computed(() => this.barTotals().map((i) => i.total));
+  readonly barColors = computed(() => this.barTotals().map((i) => i.color ?? 'rgba(43, 124, 255, 0.6)'));
+  readonly barSelectedIndex = computed(() => {
+    const activeId = this.activeCategoryId();
+    if (!activeId) {
+      return null;
+    }
+    const idx = this.barTotals().findIndex((i) => i.categoryId === activeId);
+    return idx >= 0 ? idx : null;
+  });
+
+  readonly latestTransactions = computed(() =>
+    this.scopeExpenses()
+      .slice()
+      .sort((a, b) => {
+        const byDate = b.date.localeCompare(a.date);
+        if (byDate !== 0) {
+          return byDate;
         }
-        if (this.periodEnd && transaction.date > this.periodEnd) {
-          return false;
-        }
-        return true;
+        return b.createdAt.localeCompare(a.createdAt);
       })
-      .sort((a, b) => b.date.localeCompare(a.date));
-  }
+      .slice(0, 12),
+  );
 
-  private getMonthRange(date: Date) {
-    const value = new Date(date);
-    const start = new Date(value.getFullYear(), value.getMonth(), 1);
-    const end = new Date(value.getFullYear(), value.getMonth() + 1, 0);
-    return {
-      start: start.toISOString().slice(0, 10),
-      end: end.toISOString().slice(0, 10),
-    };
-  }
-
-  async handleSubmit() {
-    const numericAmount = Number.parseFloat(this.amount);
-
-    if (!this.selectedCategoryId || Number.isNaN(numericAmount) || numericAmount <= 0) {
+  setPreset(preset: '7d' | '30d' | 'month' | 'custom') {
+    this.preset.set(preset);
+    if (preset === 'custom') {
+      // Keep current values; they are already initialized.
       return;
     }
+  }
 
-    const payload: Transaction = {
-      id: createClientId(),
-      amount: numericAmount,
-      currency: this.currency,
-      categoryId: this.selectedCategoryId,
-      note: this.note.trim(),
-      date: this.transactionDate,
-      createdAt: new Date().toISOString(),
-    };
+  handleDonutClick(index: number) {
+    const item = this.categoryTotals().at(index);
+    if (!item?.categoryId) {
+      this.clearCategoryFilter();
+      return;
+    }
+    this.setCategoryFilter(item.categoryId);
+  }
 
-    await this.store.addTransaction(payload);
-    this.resetForm();
+  handleBarClick(index: number) {
+    const item = this.barTotals().at(index);
+    if (!item?.categoryId) {
+      this.clearCategoryFilter();
+      return;
+    }
+    this.setCategoryFilter(item.categoryId);
+  }
+
+  clearCategoryFilter() {
+    this.activeCategoryId.set(null);
+  }
+
+  setCategoryFilter(categoryId: string) {
+    if (this.activeCategoryId() === categoryId) {
+      this.activeCategoryId.set(null);
+      return;
+    }
+    this.activeCategoryId.set(categoryId);
+  }
+
+  categoryName(categoryId: string) {
+    return this.categories().find((c) => c.id === categoryId)?.name ?? 'Без категории';
+  }
+
+  categoryDot(categoryId: string) {
+    const color = this.categories().find((c) => c.id === categoryId)?.color ?? '#94a3b8';
+    return `radial-gradient(80% 80% at 30% 20%, rgba(255,255,255,0.65), transparent 55%), ${color}`;
+  }
+
+  formatAmount(amount: number, currency: string) {
+    return formatMoney(amount, currency);
+  }
+
+  openAddModal() {
+    this.isAddOpen.set(true);
   }
 
   trackTransaction(_: number, transaction: Transaction) {
     return transaction.id;
   }
 
-  private resetForm() {
-    this.amount = '';
-    this.note = '';
-    const categories = this.categories();
-    if (categories.length) {
-      this.selectedCategoryId = categories[0].id;
-    }
+  get customStart() {
+    return this.customStartSignal();
+  }
+
+  set customStart(value: string) {
+    this.customStartSignal.set(String(value ?? ''));
+  }
+
+  get customEnd() {
+    return this.customEndSignal();
+  }
+
+  set customEnd(value: string) {
+    this.customEndSignal.set(String(value ?? ''));
   }
 }

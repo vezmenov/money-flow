@@ -8,9 +8,13 @@ import { FinanceStoreService } from './data/finance-store.service';
   standalone: true,
   imports: [RouterOutlet, NavComponent],
   template: `
-    <div class="app">
-      <app-nav />
-      <router-outlet />
+    <div class="app-layout">
+      <div class="app-frame">
+        <app-nav />
+        <main class="app-main">
+          <router-outlet />
+        </main>
+      </div>
     </div>
   `,
 })
