@@ -15,6 +15,8 @@ type BackendCategory = {
 
 type BackendTransaction = {
   id: string;
+  source?: string;
+  idempotencyKey?: string | null;
   categoryId: string;
   amount: number | string;
   date: string;
@@ -22,6 +24,20 @@ type BackendTransaction = {
   note?: string | null;
   currency?: string | null;
   createdAt?: string;
+};
+
+type BackendRecurringExpense = {
+  id: string;
+  categoryId: string;
+  amount: number | string;
+  dayOfMonth: number;
+  date: string;
+  description?: string | null;
+};
+
+type BackendRecurringExpenseForMonth = BackendRecurringExpense & {
+  scheduledDate: string;
+  committed: boolean;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -40,6 +56,24 @@ export class ApiService {
   async getTransactions() {
     const transactions = await this.request<BackendTransaction[]>(`${API_BASE_URL}/transactions`);
     return transactions.map((transaction) => this.mapTransaction(transaction));
+  }
+
+  async getRecurringExpenses(month?: string) {
+    const query = month ? `?month=${encodeURIComponent(month)}` : '';
+    const rows = await this.request<BackendRecurringExpenseForMonth[]>(
+      `${API_BASE_URL}/recurring-expenses${query}`,
+    );
+
+    return rows.map((row) => ({
+      id: row.id,
+      categoryId: row.categoryId,
+      amount: this.toNumber(row.amount),
+      dayOfMonth: row.dayOfMonth,
+      date: row.date,
+      description: row.description ?? '',
+      scheduledDate: row.scheduledDate,
+      committed: Boolean(row.committed),
+    }));
   }
 
   async createCategory(category: Category) {
@@ -84,6 +118,19 @@ export class ApiService {
     });
   }
 
+  async createRecurringExpense(payload: {
+    categoryId: string;
+    amount: number;
+    dayOfMonth: number;
+    date: string;
+    description?: string;
+  }) {
+    await this.request(`${API_BASE_URL}/recurring-expenses`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
   async updateTransaction(transaction: Transaction) {
     const payload = {
       categoryId: transaction.categoryId,
@@ -100,6 +147,12 @@ export class ApiService {
 
   async deleteTransaction(transactionId: string) {
     await this.request(`${API_BASE_URL}/transactions/${transactionId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async deleteRecurringExpense(recurringId: string) {
+    await this.request(`${API_BASE_URL}/recurring-expenses/${recurringId}`, {
       method: 'DELETE',
     });
   }
@@ -125,19 +178,20 @@ export class ApiService {
   }
 
   private mapTransaction(transaction: BackendTransaction): Transaction {
-    const amount =
-      typeof transaction.amount === 'number'
-        ? transaction.amount
-        : Number.parseFloat(String(transaction.amount));
-
     return {
       id: transaction.id,
       categoryId: transaction.categoryId,
-      amount: Number.isFinite(amount) ? amount : 0,
+      amount: this.toNumber(transaction.amount),
       currency: transaction.currency ?? DEFAULT_CURRENCY,
       note: transaction.note ?? transaction.description ?? '',
       date: transaction.date,
       createdAt: transaction.createdAt ?? new Date().toISOString(),
     };
+  }
+
+  private toNumber(value: unknown) {
+    const amount =
+      typeof value === 'number' ? value : Number.parseFloat(String(value));
+    return Number.isFinite(amount) ? amount : 0;
   }
 }

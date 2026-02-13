@@ -233,3 +233,35 @@ export const SNAPSHOT_TRANSACTIONS = [
   },
 ];
 
+export const SNAPSHOT_RECURRING_EXPENSES_FOR_MONTH = [
+  {
+    id: 'rec-rent',
+    categoryId: 'cat-home',
+    amount: 42000,
+    dayOfMonth: 1,
+    date: '2026-01-01',
+    description: 'Аренда',
+    scheduledDate: '2026-02-01',
+    committed: true,
+  },
+  {
+    id: 'rec-subs',
+    categoryId: 'cat-subs',
+    amount: 499,
+    dayOfMonth: 3,
+    date: '2026-01-03',
+    description: 'Подписки',
+    scheduledDate: '2026-02-03',
+    committed: true,
+  },
+  {
+    id: 'rec-gym',
+    categoryId: 'cat-health',
+    amount: 2900,
+    dayOfMonth: 15,
+    date: '2026-02-15',
+    description: 'Зал',
+    scheduledDate: '2026-02-15',
+    committed: false,
+  },
+];

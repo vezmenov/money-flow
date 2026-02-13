@@ -2,7 +2,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { FinanceStoreService, Transaction } from '../../../data/finance-store.service';
+import { CreateRecurringExpense, FinanceStoreService, Transaction } from '../../../data/finance-store.service';
 import { createClientId } from '../../../utils/id';
 import { ButtonComponent } from '../../../shared/ui/button/button.component';
 import { DateInputComponent } from '../../../shared/ui/forms/date-input.component';
@@ -11,6 +11,8 @@ import { InputDirective } from '../../../shared/ui/forms/input.directive';
 import { ModalComponent } from '../../../shared/ui/modal/modal.component';
 
 let nextFormId = 0;
+
+export type AddExpenseMode = 'oneTime' | 'recurring';
 
 @Component({
   selector: 'app-add-expense-modal',
@@ -32,6 +34,31 @@ let nextFormId = 0;
       title="Быстро добавить трату"
       size="sm"
     >
+      <div class="add-expense__mode" role="group" aria-label="Тип траты">
+        <app-button
+          variant="secondary"
+          size="sm"
+          type="button"
+          [selected]="modeValue === 'oneTime'"
+          (click)="setMode('oneTime')"
+        >
+          Разовая
+        </app-button>
+        <app-button
+          variant="secondary"
+          size="sm"
+          type="button"
+          [selected]="modeValue === 'recurring'"
+          (click)="setMode('recurring')"
+        >
+          Регулярная
+        </app-button>
+      </div>
+
+      <p class="add-expense__mode-hint" *ngIf="modeValue === 'recurring'">
+        Будет создаваться каждый месяц в выбранный день. Старт задается датой ниже.
+      </p>
+
       <ng-container *ngIf="expenseCategories().length > 0; else noCategories">
         <form class="add-expense" [id]="formId" (ngSubmit)="handleSubmit()">
           <app-field label="Категория">
@@ -42,7 +69,7 @@ let nextFormId = 0;
             </select>
           </app-field>
 
-          <div class="add-expense__row">
+          <div class="add-expense__row" [class.add-expense__row--single]="modeValue === 'recurring'">
             <app-field label="Сумма" [error]="amountError">
               <input
                 #amountInput
@@ -57,7 +84,7 @@ let nextFormId = 0;
               />
             </app-field>
 
-            <app-field label="Валюта">
+            <app-field *ngIf="modeValue === 'oneTime'" label="Валюта">
               <select appInput name="currency" [(ngModel)]="currency">
                 <option *ngFor="let item of currencies" [value]="item">{{ item }}</option>
               </select>
@@ -68,7 +95,10 @@ let nextFormId = 0;
             <app-date-input name="date" [(ngModel)]="transactionDate" />
           </app-field>
 
-          <app-field label="Заметка" hint="Опционально. Короткий комментарий.">
+          <app-field
+            [label]="modeValue === 'recurring' ? 'Описание' : 'Заметка'"
+            hint="Опционально. Короткий комментарий."
+          >
             <textarea
               appInput
               name="note"
@@ -115,11 +145,28 @@ let nextFormId = 0;
       gap: 0.95rem;
     }
 
+    .add-expense__mode {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0.25rem 0;
+    }
+
+    .add-expense__mode-hint {
+      margin: 0 0 0.25rem 0;
+      color: color-mix(in srgb, var(--text, #0b1020) 65%, transparent);
+      font-size: 0.9rem;
+    }
+
     .add-expense__row {
       display: grid;
       gap: 0.95rem;
       grid-template-columns: 1fr 140px;
       align-items: end;
+    }
+
+    .add-expense__row--single {
+      grid-template-columns: 1fr;
     }
 
     @media (max-width: 420px) {
@@ -154,11 +201,13 @@ export class AddExpenseModalComponent {
   @ViewChild('amountInput') private readonly amountInput?: ElementRef<HTMLInputElement>;
 
   private isOpen = false;
+  modeValue: AddExpenseMode = 'oneTime';
 
   @Input()
   set open(value: boolean) {
     this.isOpen = Boolean(value);
     if (this.isOpen) {
+      this.modeValue = this.mode;
       this.ensureDefaults();
       setTimeout(() => this.amountInput?.nativeElement?.focus(), 0);
     }
@@ -167,6 +216,8 @@ export class AddExpenseModalComponent {
   get open() {
     return this.isOpen;
   }
+
+  @Input() mode: AddExpenseMode = 'oneTime';
 
   @Output() openChange = new EventEmitter<boolean>();
 
@@ -241,22 +292,43 @@ export class AddExpenseModalComponent {
 
     this.isSaving = true;
     try {
-      const payload: Transaction = {
-        id: createClientId(),
-        amount: numericAmount,
-        currency: this.currency,
-        categoryId: this.selectedCategoryId,
-        note: this.note.trim(),
-        date: this.transactionDate,
-        createdAt: new Date().toISOString(),
-      };
+      if (this.modeValue === 'recurring') {
+        const dayOfMonth = Number.parseInt(String(this.transactionDate).slice(8, 10), 10);
+        if (!Number.isFinite(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) {
+          return;
+        }
 
-      await this.store.addTransaction(payload);
+        const payload: CreateRecurringExpense = {
+          categoryId: this.selectedCategoryId,
+          amount: numericAmount,
+          dayOfMonth,
+          date: this.transactionDate,
+          description: this.note.trim() || undefined,
+        };
+
+        await this.store.addRecurringExpense(payload);
+      } else {
+        const payload: Transaction = {
+          id: createClientId(),
+          amount: numericAmount,
+          currency: this.currency,
+          categoryId: this.selectedCategoryId,
+          note: this.note.trim(),
+          date: this.transactionDate,
+          createdAt: new Date().toISOString(),
+        };
+
+        await this.store.addTransaction(payload);
+      }
       this.resetAfterSave();
       this.handleOpenChange(false);
     } finally {
       this.isSaving = false;
     }
+  }
+
+  setMode(mode: AddExpenseMode) {
+    this.modeValue = mode;
   }
 
   private resetAfterSave() {

@@ -1,7 +1,7 @@
 import { NgFor, NgIf } from '@angular/common';
 import { Component, computed, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FinanceStoreService, Transaction } from '../../data/finance-store.service';
+import { FinanceStoreService, RecurringExpenseForMonth, Transaction } from '../../data/finance-store.service';
 import {
   filterExpenseTransactions,
   filterTransactionsByPeriod,
@@ -19,6 +19,7 @@ import { DonutChartComponent } from '../../shared/charts/donut-chart.component';
 import { LineChartComponent } from '../../shared/charts/line-chart.component';
 import { ButtonComponent } from '../../shared/ui/button/button.component';
 import { FabComponent } from '../../shared/ui/button/fab.component';
+import { IconButtonComponent } from '../../shared/ui/button/icon-button.component';
 import { DateInputComponent } from '../../shared/ui/forms/date-input.component';
 import { FieldComponent } from '../../shared/ui/forms/field.component';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
@@ -38,6 +39,7 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
     BarChartComponent,
     FabComponent,
     IconComponent,
+    IconButtonComponent,
     AddExpenseModalComponent,
   ],
   template: `
@@ -180,6 +182,71 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
         <section class="glass-surface home-card home-card--wide">
           <header class="home-card__header home-card__header--row">
             <div>
+              <h2 class="home-card__title">Регулярные траты</h2>
+              <p class="home-card__hint">
+                План на {{ recurringMonthLabel() }} · {{ recurringCommittedCount() }}/{{ recurringExpenses().length }}
+                создано
+              </p>
+            </div>
+            <app-icon-button
+              icon="plus"
+              ariaLabel="Добавить регулярную трату"
+              variant="success"
+              (click)="openAddModal('recurring')"
+            />
+          </header>
+
+          <ng-container *ngIf="recurringExpenses().length > 0; else emptyRecurring">
+            <div class="home-recurring__kpis">
+              <div class="home-recurring__kpi">
+                <div class="home-recurring__kpi-label">План</div>
+                <div class="home-recurring__kpi-value">{{ recurringTotalLabel() }}</div>
+              </div>
+              <div class="home-recurring__kpi">
+                <div class="home-recurring__kpi-label">Ожидает</div>
+                <div class="home-recurring__kpi-value">{{ recurringPendingLabel() }}</div>
+              </div>
+              <div class="home-recurring__kpi">
+                <div class="home-recurring__kpi-label">Создано</div>
+                <div class="home-recurring__kpi-value">{{ recurringCommittedCount() }}</div>
+              </div>
+            </div>
+
+            <ul class="home-recurring__list">
+              <li
+                *ngFor="let item of recurringSorted(); trackBy: trackRecurring"
+                class="home-recurring__item"
+              >
+                <span class="home-recurring__dot" [style.background]="categoryDot(item.categoryId)" aria-hidden="true"></span>
+                <div class="home-recurring__main">
+                  <div class="home-recurring__top">
+                    <span class="home-recurring__name">{{ categoryName(item.categoryId) }}</span>
+                    <span class="home-recurring__amount">{{ formatRecurringAmount(item.amount) }}</span>
+                  </div>
+                  <div class="home-recurring__bottom">
+                    <span class="home-recurring__date">Сработает {{ item.scheduledDate }}</span>
+                    <span class="home-recurring__badge" [attr.data-state]="item.committed ? 'done' : 'pending'">
+                      {{ item.committed ? 'создано' : 'ожидает' }}
+                    </span>
+                    <span class="home-recurring__note" *ngIf="item.description">{{ item.description }}</span>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </ng-container>
+
+          <ng-template #emptyRecurring>
+            <div class="home-empty">
+              <app-icon name="dashboard" [size]="22" [decorative]="true" />
+              <p class="home-empty__title">Регулярных трат пока нет</p>
+              <p class="home-empty__text">Жми плюс справа, чтобы добавить шаблон на месяц.</p>
+            </div>
+          </ng-template>
+        </section>
+
+        <section class="glass-surface home-card home-card--wide">
+          <header class="home-card__header home-card__header--row">
+            <div>
               <h2 class="home-card__title">Последние траты</h2>
               <p class="home-card__hint" *ngIf="activeCategory()">
                 Фильтр: <strong>{{ activeCategory()!.name }}</strong>
@@ -237,8 +304,12 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
         </section>
       </section>
 
-      <app-fab (click)="openAddModal()" />
-      <app-add-expense-modal [open]="isAddOpen()" (openChange)="isAddOpen.set($event)" />
+      <app-fab (click)="openAddModal('oneTime')" />
+      <app-add-expense-modal
+        [mode]="addMode()"
+        [open]="isAddOpen()"
+        (openChange)="isAddOpen.set($event)"
+      />
     </main>
   `,
   styles: `
@@ -473,6 +544,148 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
       max-width: 42rem;
     }
 
+    .home-recurring__kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 2px 0 6px 0;
+    }
+
+    .home-recurring__kpi {
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.16);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8);
+      display: grid;
+      gap: 4px;
+    }
+
+    .home-recurring__kpi-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--text, #0b1020) 50%, transparent);
+      font-weight: 750;
+    }
+
+    .home-recurring__kpi-value {
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .home-recurring__list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .home-recurring__item {
+      display: grid;
+      grid-template-columns: 12px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .home-recurring__dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.65);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      margin-top: 4px;
+    }
+
+    .home-recurring__main {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .home-recurring__top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .home-recurring__name {
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      color: rgba(11, 16, 32, 0.92);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .home-recurring__amount {
+      font-weight: 950;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .home-recurring__bottom {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: baseline;
+      color: color-mix(in srgb, var(--text, #0b1020) 62%, transparent);
+      font-size: 0.9rem;
+    }
+
+    .home-recurring__badge {
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-pill, 999px);
+      font-size: 0.78rem;
+      font-weight: 750;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background:
+        linear-gradient(
+          to bottom,
+          var(--plastic-bg-top, #f3f4f6),
+          var(--plastic-bg-bot, #e5e7eb)
+        );
+      color: rgba(55, 65, 81, 0.95);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.75);
+    }
+
+    .home-recurring__badge[data-state='done'] {
+      background:
+        linear-gradient(
+          to bottom,
+          var(--accent-green-soft, #6ee7b7),
+          var(--accent-green-bright, #34d399)
+        );
+      border-color: color-mix(in srgb, var(--accent-green-dark, #059669) 50%, transparent);
+      color: rgba(6, 78, 59, 0.96);
+    }
+
+    .home-recurring__badge[data-state='pending'] {
+      background:
+        linear-gradient(
+          to bottom,
+          var(--accent-blue-soft, #60a5fa),
+          color-mix(in srgb, var(--accent-blue, #3b82f6) 70%, white 30%)
+        );
+      border-color: color-mix(in srgb, var(--accent-blue-dark, #1d4ed8) 45%, transparent);
+      color: rgba(30, 58, 138, 0.96);
+    }
+
+    .home-recurring__note {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+    }
+
     @media (max-width: 900px) {
       .home__grid {
         grid-template-columns: 1fr;
@@ -489,6 +702,10 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
       .home__dates {
         grid-template-columns: 1fr;
       }
+
+      .home-recurring__kpis {
+        grid-template-columns: 1fr;
+      }
     }
   `,
 })
@@ -501,6 +718,7 @@ export class HomeComponent {
   private readonly customEndSignal = signal(getMonthRange(new Date()).end);
   readonly activeCategoryId = signal<string | null>(null);
   readonly isAddOpen = signal(false);
+  readonly addMode = signal<'oneTime' | 'recurring'>('oneTime');
 
   constructor(private readonly store: FinanceStoreService) {
     effect(() => {
@@ -512,6 +730,13 @@ export class HomeComponent {
       if (!ids.has(activeId)) {
         this.activeCategoryId.set(null);
       }
+    });
+
+    effect(() => {
+      const month = this.recurringMonth();
+      void this.store.loadRecurringExpenses(month).catch((error) => {
+        console.error('Failed to load recurring expenses', error);
+      });
     });
   }
 
@@ -653,6 +878,24 @@ export class HomeComponent {
       .slice(0, 12),
   );
 
+  readonly recurringExpenses = this.store.recurringExpenses;
+  readonly recurringMonth = computed(() => String(this.period().end ?? '').slice(0, 7));
+
+  readonly recurringSorted = computed(() =>
+    this.recurringExpenses()
+      .slice()
+      .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate)),
+  );
+
+  readonly recurringCommittedCount = computed(() => this.recurringExpenses().filter((r) => r.committed).length);
+
+  readonly recurringTotal = computed(() => this.recurringExpenses().reduce((sum, r) => sum + r.amount, 0));
+  readonly recurringPendingTotal = computed(() =>
+    this.recurringExpenses()
+      .filter((r) => !r.committed)
+      .reduce((sum, r) => sum + r.amount, 0),
+  );
+
   setPreset(preset: '7d' | '30d' | 'month' | 'custom') {
     this.preset.set(preset);
     if (preset === 'custom') {
@@ -704,8 +947,33 @@ export class HomeComponent {
     return formatMoney(amount, currency);
   }
 
-  openAddModal() {
+  openAddModal(mode: 'oneTime' | 'recurring') {
+    this.addMode.set(mode);
     this.isAddOpen.set(true);
+  }
+
+  recurringMonthLabel() {
+    const month = this.recurringMonth();
+    if (month.length !== 7) {
+      return '—';
+    }
+    return `${month.slice(5)}.${month.slice(0, 4)}`;
+  }
+
+  recurringTotalLabel() {
+    return formatMoney(this.recurringTotal(), this.primaryCurrency());
+  }
+
+  recurringPendingLabel() {
+    return formatMoney(this.recurringPendingTotal(), this.primaryCurrency());
+  }
+
+  formatRecurringAmount(amount: number) {
+    return formatMoney(amount, this.primaryCurrency());
+  }
+
+  trackRecurring(_: number, item: RecurringExpenseForMonth) {
+    return item.id;
   }
 
   trackTransaction(_: number, transaction: Transaction) {

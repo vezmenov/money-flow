@@ -34,6 +34,21 @@
 <app-button variant="primary" size="md" type="submit">Сохранить</app-button>
 ```
 
+### Icon Button
+- Selector: `app-icon-button`
+- Файл: `/Users/slave/FettrCode/money-flow/src/app/shared/ui/button/icon-button.component.ts`
+- Назначение: иконка-кнопка в пластике (например “+” рядом с карточками/дашбордами).
+- Inputs:
+  - `icon` (обязательный)
+  - `ariaLabel`
+  - `variant`: `neutral | primary | success | danger`
+  - `size`, `iconSize`, `disabled`
+
+Пример:
+```html
+<app-icon-button icon="plus" ariaLabel="Добавить" variant="success" />
+```
+
 ### FAB
 - Selector: `app-fab`
 - Файл: `/Users/slave/FettrCode/money-flow/src/app/shared/ui/button/fab.component.ts`
@@ -89,4 +104,3 @@
 - `/Users/slave/FettrCode/money-flow/src/app/shared/charts/line-chart.component.ts` (`app-line-chart`)
 - `/Users/slave/FettrCode/money-flow/src/app/shared/charts/donut-chart.component.ts` (`app-donut-chart`)
 - `/Users/slave/FettrCode/money-flow/src/app/shared/charts/bar-chart.component.ts` (`app-bar-chart`)
-

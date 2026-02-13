@@ -42,17 +42,17 @@ import { IconName } from '../icon/icons';
           var(--accent-green-bright, #34d399),
           var(--accent-green, #10b981)
         );
-      box-shadow:
-        inset 0 1px 2px rgba(255, 255, 255, 0.5),
-        0 2px 8px rgba(16, 185, 129, 0.5),
-        0 18px 34px rgba(0, 0, 0, 0.18);
-      cursor: pointer;
-      color: rgba(6, 78, 59, 0.96);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      -webkit-tap-highlight-color: transparent;
-      transition:
+	      box-shadow:
+	        inset 0 1px 2px rgba(255, 255, 255, 0.5),
+	        0 2px 8px rgba(16, 185, 129, 0.5),
+	        0 18px 34px rgba(0, 0, 0, 0.18);
+	      cursor: pointer;
+	      color: rgba(255, 255, 255, 0.96);
+	      display: inline-flex;
+	      align-items: center;
+	      justify-content: center;
+	      -webkit-tap-highlight-color: transparent;
+	      transition:
         transform 140ms ease,
         filter 140ms ease,
         box-shadow 140ms ease;

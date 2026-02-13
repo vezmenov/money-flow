@@ -5,7 +5,11 @@ import process from 'node:process';
 
 import { chromium } from 'playwright-core';
 
-import { SNAPSHOT_CATEGORIES, SNAPSHOT_TRANSACTIONS } from './fixtures.mjs';
+import {
+  SNAPSHOT_CATEGORIES,
+  SNAPSHOT_RECURRING_EXPENSES_FOR_MONTH,
+  SNAPSHOT_TRANSACTIONS,
+} from './fixtures.mjs';
 
 const PORT = Number(process.env.UI_SNAP_PORT ?? 4173);
 const BASE_URL = String(process.env.UI_SNAP_BASE_URL ?? `http://127.0.0.1:${PORT}`);
@@ -74,6 +78,7 @@ async function launchBrowser() {
 function buildApiHandler() {
   const categories = SNAPSHOT_CATEGORIES;
   const transactions = SNAPSHOT_TRANSACTIONS;
+  const recurring = SNAPSHOT_RECURRING_EXPENSES_FOR_MONTH;
 
   return async (route) => {
     const request = route.request();
@@ -107,7 +112,33 @@ function buildApiHandler() {
       return;
     }
 
+    if (pathname === '/api/recurring-expenses') {
+      if (method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(recurring),
+        });
+        return;
+      }
+      if (method === 'POST') {
+        await route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify(recurring[0]),
+        });
+        return;
+      }
+      await route.fulfill({ status: 204, body: '' });
+      return;
+    }
+
     if (pathname.startsWith('/api/categories/') || pathname.startsWith('/api/transactions/')) {
+      await route.fulfill({ status: 204, body: '' });
+      return;
+    }
+
+    if (pathname.startsWith('/api/recurring-expenses/')) {
       await route.fulfill({ status: 204, body: '' });
       return;
     }
@@ -198,8 +229,17 @@ async function main() {
             await page.click('app-fab .app-fab__btn');
             await page.waitForSelector('dialog[open]', { timeout: 10_000 });
             await page.waitForTimeout(150);
+          await page.screenshot({
+            path: path.join(OUTPUT_DIR, `home-add-modal-${vp.name}.png`),
+            fullPage: true,
+          });
+          await page.keyboard.press('Escape');
+
+            await page.click('button[aria-label="Добавить регулярную трату"]');
+            await page.waitForSelector('dialog[open]', { timeout: 10_000 });
+            await page.waitForTimeout(150);
             await page.screenshot({
-              path: path.join(OUTPUT_DIR, `home-add-modal-${vp.name}.png`),
+              path: path.join(OUTPUT_DIR, `home-add-recurring-modal-${vp.name}.png`),
               fullPage: true,
             });
             await page.keyboard.press('Escape');
