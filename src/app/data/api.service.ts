@@ -151,17 +151,37 @@ export class ApiService {
     });
   }
 
-  async deleteRecurringExpense(recurringId: string) {
-    await this.request(`${API_BASE_URL}/recurring-expenses/${recurringId}`, {
-      method: 'DELETE',
-    });
-  }
+	async deleteRecurringExpense(recurringId: string) {
+	  await this.request(`${API_BASE_URL}/recurring-expenses/${recurringId}`, {
+	    method: 'DELETE',
+	  });
+	}
 
-  private async request<T>(input: string, init?: RequestInit) {
-    const response = await fetch(input, {
-      ...init,
-      headers: {
-        'Content-Type': 'application/json',
+	async exportXlsx() {
+	  const response = await fetch(`${API_BASE_URL}/export/xlsx`, {
+	    method: 'GET',
+	    headers: {
+	      Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+	    },
+	  });
+
+	  if (!response.ok) {
+	    throw new Error(`API request failed: ${response.status}`);
+	  }
+
+	  const blob = await response.blob();
+	  const filename =
+	    this.parseContentDispositionFilename(response.headers.get('content-disposition')) ??
+	    `money-flow-export-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+	  return { blob, filename };
+	}
+
+	private async request<T>(input: string, init?: RequestInit) {
+	  const response = await fetch(input, {
+	    ...init,
+	    headers: {
+	      'Content-Type': 'application/json',
         ...(init?.headers ?? {}),
       },
     });
@@ -190,8 +210,26 @@ export class ApiService {
   }
 
   private toNumber(value: unknown) {
-    const amount =
-      typeof value === 'number' ? value : Number.parseFloat(String(value));
-    return Number.isFinite(amount) ? amount : 0;
-  }
+	  const amount =
+	    typeof value === 'number' ? value : Number.parseFloat(String(value));
+	  return Number.isFinite(amount) ? amount : 0;
+	}
+
+	private parseContentDispositionFilename(header: string | null) {
+	  if (!header) {
+	    return null;
+	  }
+
+	  const filenameStar = header.match(/filename\\*=UTF-8''([^;]+)/i);
+	  if (filenameStar?.[1]) {
+	    try {
+	      return decodeURIComponent(filenameStar[1].replace(/\"/g, '').trim());
+	    } catch {
+	      return filenameStar[1].replace(/\"/g, '').trim();
+	    }
+	  }
+
+	  const filename = header.match(/filename=\"?([^\";]+)\"?/i);
+	  return filename?.[1]?.trim() ?? null;
+	}
 }

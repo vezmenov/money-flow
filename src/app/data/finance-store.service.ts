@@ -44,6 +44,7 @@ export class FinanceStoreService {
   readonly transactions = signal<Transaction[]>([]);
   readonly recurringExpenses = signal<RecurringExpenseForMonth[]>([]);
   readonly recurringExpensesMonth = signal<string>('');
+  readonly isExporting = signal(false);
 
   constructor(private readonly api: ApiService) {}
 
@@ -112,6 +113,31 @@ export class FinanceStoreService {
     const month = this.recurringExpensesMonth();
     if (month) {
       await this.loadRecurringExpenses(month, true);
+    }
+  }
+
+  async exportXlsx() {
+    if (this.isExporting()) {
+      return;
+    }
+
+    this.isExporting.set(true);
+    try {
+      const { blob, filename } = await this.api.exportXlsx();
+      const url = URL.createObjectURL(blob);
+      try {
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = filename;
+        anchor.rel = 'noopener';
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    } finally {
+      this.isExporting.set(false);
     }
   }
 

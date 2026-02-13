@@ -1,4 +1,4 @@
-export type IconName = 'home' | 'categories' | 'dashboard' | 'plus' | 'close';
+export type IconName = 'home' | 'categories' | 'dashboard' | 'plus' | 'close' | 'download';
 
 type IconDef = {
   viewBox: string;
@@ -38,5 +38,8 @@ export const ICONS: Record<IconName, IconDef> = {
     viewBox: '0 0 24 24',
     paths: ['M6 6l12 12', 'M18 6 6 18'],
   },
+  download: {
+    viewBox: '0 0 24 24',
+    paths: ['M12 3v11', 'M7 11l5 5 5-5', 'M5 21h14'],
+  },
 };
-

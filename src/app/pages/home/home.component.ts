@@ -52,9 +52,9 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
         </p>
       </header>
 
-      <section class="glass-surface home__filters">
-        <div class="home__filters-top">
-          <div class="home__chips" role="group" aria-label="Период">
+	      <section class="glass-surface home__filters">
+	        <div class="home__filters-top">
+	          <div class="home__chips" role="group" aria-label="Период">
             <app-button
               variant="ghost"
               size="sm"
@@ -91,13 +91,26 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
             >
               Свои даты
             </app-button>
-          </div>
+	          </div>
 
-          <div class="home__range" aria-label="Текущий период">
-            <span class="home__range-label">Период:</span>
-            <span class="home__range-value">{{ period().start }} → {{ period().end }}</span>
-          </div>
-        </div>
+	          <div class="home__filters-actions">
+	            <div class="home__range" aria-label="Текущий период">
+	              <span class="home__range-label">Период:</span>
+	              <span class="home__range-value">{{ period().start }} → {{ period().end }}</span>
+	            </div>
+	            <app-button
+	              variant="secondary"
+	              size="sm"
+	              type="button"
+	              [loading]="isExporting()"
+	              ariaLabel="Экспортировать траты в XLSX"
+	              (click)="exportXlsx()"
+	            >
+	              <app-icon name="download" [size]="18" [decorative]="true" />
+	              Экспорт
+	            </app-button>
+	          </div>
+	        </div>
 
         <div *ngIf="preset() === 'custom'" class="home__dates">
           <app-field label="С">
@@ -329,19 +342,27 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
       gap: 12px;
     }
 
-    .home__filters-top {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
+	    .home__filters-top {
+	      display: flex;
+	      flex-wrap: wrap;
+	      align-items: center;
+	      justify-content: space-between;
+	      gap: 12px;
+	    }
 
-    .home__chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+	    .home__filters-actions {
+	      display: flex;
+	      align-items: center;
+	      justify-content: flex-end;
+	      flex-wrap: wrap;
+	      gap: 10px;
+	    }
+
+	    .home__chips {
+	      display: flex;
+	      flex-wrap: wrap;
+	      gap: 10px;
+	    }
 
     .home__range {
       display: inline-flex;
@@ -712,6 +733,7 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
 export class HomeComponent {
   readonly categories = this.store.categories;
   readonly transactions = this.store.transactions;
+  readonly isExporting = this.store.isExporting;
 
   readonly preset = signal<'7d' | '30d' | 'month' | 'custom'>('month');
   private readonly customStartSignal = signal(getMonthRange(new Date()).start);
@@ -950,6 +972,12 @@ export class HomeComponent {
   openAddModal(mode: 'oneTime' | 'recurring') {
     this.addMode.set(mode);
     this.isAddOpen.set(true);
+  }
+
+  exportXlsx() {
+    void this.store.exportXlsx().catch((error) => {
+      console.error('Failed to export XLSX', error);
+    });
   }
 
   recurringMonthLabel() {
