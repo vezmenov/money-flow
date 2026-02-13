@@ -106,6 +106,11 @@ export class BarChartComponent implements AfterViewInit, OnDestroy {
       ? this.colors
       : labels.map(() => 'rgba(43, 124, 255, 0.72)');
 
+    const reduceMotion =
+      typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        : false;
+
     const colors = baseColors.map((c, idx) =>
       this.selectedIndex === null || this.selectedIndex === idx ? this.applyAlpha(c, 0.82) : this.applyAlpha(c, 0.55),
     );
@@ -113,6 +118,7 @@ export class BarChartComponent implements AfterViewInit, OnDestroy {
     const options: ChartOptions<'bar'> = {
       responsive: true,
       maintainAspectRatio: false,
+      animation: reduceMotion ? false : undefined,
       plugins: {
         legend: { display: false },
         tooltip: {

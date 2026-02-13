@@ -1,0 +1,223 @@
+import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+
+import { chromium } from 'playwright-core';
+
+import { SNAPSHOT_CATEGORIES, SNAPSHOT_TRANSACTIONS } from './fixtures.mjs';
+
+const PORT = Number(process.env.UI_SNAP_PORT ?? 4173);
+const BASE_URL = String(process.env.UI_SNAP_BASE_URL ?? `http://127.0.0.1:${PORT}`);
+const OUTPUT_DIR = path.resolve('Docs/Snapshots/latest');
+const FIXED_NOW_ISO = String(process.env.UI_SNAP_NOW ?? '2026-02-13T12:00:00.000Z');
+
+const VIEWPORTS = [
+  { name: 'desktop', width: 1280, height: 800, isMobile: false },
+  { name: 'mobile', width: 375, height: 812, isMobile: true },
+];
+
+const ROUTES = [
+  { name: 'home', hash: '#/', ready: 'main.home' },
+  { name: 'categories', hash: '#/categories', ready: 'main.categories' },
+  { name: 'dashboards', hash: '#/dashboards', ready: 'main.dashboards' },
+];
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForServer(url, timeoutMs = 20_000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const res = await fetch(url, { redirect: 'follow' });
+      if (res.ok) {
+        return;
+      }
+    } catch {
+      // ignore
+    }
+    await sleep(250);
+  }
+  throw new Error(`Preview server did not start within ${timeoutMs}ms at ${url}`);
+}
+
+function prepareOutput() {
+  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  for (const entry of fs.readdirSync(OUTPUT_DIR)) {
+    if (entry.toLowerCase().endsWith('.png')) {
+      fs.rmSync(path.join(OUTPUT_DIR, entry), { force: true });
+    }
+  }
+}
+
+function startPreviewServer() {
+  const args = ['run', 'preview', '--', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'];
+  const child = spawn('npm', args, {
+    stdio: 'inherit',
+    env: process.env,
+  });
+  return child;
+}
+
+async function launchBrowser() {
+  const channel = process.env.PLAYWRIGHT_CHANNEL ?? 'chrome';
+  try {
+    return await chromium.launch({ headless: true, channel });
+  } catch {
+    // Fall back to Playwright defaults if channel is unavailable.
+    return await chromium.launch({ headless: true });
+  }
+}
+
+function buildApiHandler() {
+  const categories = SNAPSHOT_CATEGORIES;
+  const transactions = SNAPSHOT_TRANSACTIONS;
+
+  return async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const pathname = url.pathname;
+    const method = request.method();
+
+    if (pathname === '/api/categories') {
+      if (method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(categories),
+        });
+        return;
+      }
+      await route.fulfill({ status: 204, body: '' });
+      return;
+    }
+
+    if (pathname === '/api/transactions') {
+      if (method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(transactions),
+        });
+        return;
+      }
+      await route.fulfill({ status: 204, body: '' });
+      return;
+    }
+
+    if (pathname.startsWith('/api/categories/') || pathname.startsWith('/api/transactions/')) {
+      await route.fulfill({ status: 204, body: '' });
+      return;
+    }
+
+    // If something else unexpectedly calls the API, fail fast so we notice.
+    await route.fulfill({
+      status: 404,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'snapshot: no fixture for this endpoint' }),
+    });
+  };
+}
+
+async function main() {
+  prepareOutput();
+
+  const server = startPreviewServer();
+  try {
+    await waitForServer(BASE_URL);
+
+    const browser = await launchBrowser();
+    try {
+      for (const vp of VIEWPORTS) {
+        const context = await browser.newContext({
+          viewport: { width: vp.width, height: vp.height },
+          deviceScaleFactor: 1,
+          locale: 'ru-RU',
+          timezoneId: 'Europe/Moscow',
+          colorScheme: 'light',
+          isMobile: vp.isMobile,
+          hasTouch: vp.isMobile,
+        });
+
+        await context.addInitScript(
+          ({ nowIso }) => {
+            const fixed = new Date(nowIso).getTime();
+            const OriginalDate = Date;
+
+            class MockDate extends OriginalDate {
+              constructor(...args) {
+                if (args.length === 0) {
+                  super(fixed);
+                  return;
+                }
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                super(...args);
+              }
+
+              static now() {
+                return fixed;
+              }
+            }
+
+            MockDate.parse = OriginalDate.parse;
+            MockDate.UTC = OriginalDate.UTC;
+
+            // @ts-ignore - runtime patch for deterministic UI snapshots.
+            globalThis.Date = MockDate;
+            // @ts-ignore
+            globalThis.__UI_SNAPSHOT__ = true;
+          },
+          { nowIso: FIXED_NOW_ISO },
+        );
+
+        await context.route('**/api/**', buildApiHandler());
+
+        const page = await context.newPage();
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+
+        for (const route of ROUTES) {
+          const url = `${BASE_URL}/${route.hash}`;
+          await page.goto(url, { waitUntil: 'networkidle' });
+          await page.waitForSelector(route.ready, { timeout: 10_000 });
+          await page.addStyleTag({
+            content: `
+              * { animation: none !important; transition: none !important; }
+              html { scroll-behavior: auto !important; }
+            `,
+          });
+
+          await page.waitForTimeout(250);
+          await page.screenshot({
+            path: path.join(OUTPUT_DIR, `${route.name}-${vp.name}.png`),
+            fullPage: true,
+          });
+
+          if (route.name === 'home') {
+            await page.click('app-fab .app-fab__btn');
+            await page.waitForSelector('dialog[open]', { timeout: 10_000 });
+            await page.waitForTimeout(150);
+            await page.screenshot({
+              path: path.join(OUTPUT_DIR, `home-add-modal-${vp.name}.png`),
+              fullPage: true,
+            });
+            await page.keyboard.press('Escape');
+          }
+        }
+
+        await context.close();
+      }
+    } finally {
+      await browser.close();
+    }
+  } finally {
+    server.kill('SIGTERM');
+    await sleep(250);
+  }
+}
+
+main().catch((error) => {
+  console.error('[ui:snap] failed:', error);
+  process.exitCode = 1;
+});

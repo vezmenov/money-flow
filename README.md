@@ -16,6 +16,7 @@ npm run dev
 - `npm run dev` — локальная разработка
 - `npm run build` — сборка
 - `npm run preview` — локальный просмотр сборки
+- `npm run ui:snap` — детерминированные UI-скриншоты (см. `Docs/Snapshots.md`)
 
 ## План разработки
 

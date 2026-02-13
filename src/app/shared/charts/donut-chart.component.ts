@@ -104,11 +104,17 @@ export class DonutChartComponent implements AfterViewInit, OnDestroy {
     const values = this.values ?? [];
     const colors = this.colors?.length ? this.colors : this.defaultColors(values.length);
 
+    const reduceMotion =
+      typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        : false;
+
     const offsets = values.map((_, idx) => (this.selectedIndex === idx ? 10 : 0));
 
     const options: ChartOptions<'doughnut'> = {
       responsive: true,
       maintainAspectRatio: false,
+      animation: reduceMotion ? false : undefined,
       cutout: '70%',
       plugins: {
         legend: { display: false },
@@ -178,4 +184,3 @@ export class DonutChartComponent implements AfterViewInit, OnDestroy {
     return Array.from({ length: count }, (_, i) => base[i % base.length]!);
   }
 }
-

@@ -103,6 +103,11 @@ export class LineChartComponent implements AfterViewInit, OnDestroy {
     const labels = this.labels ?? [];
     const values = this.values ?? [];
 
+    const reduceMotion =
+      typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        : false;
+
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height || 240);
     gradient.addColorStop(0, 'rgba(43, 124, 255, 0.35)');
     gradient.addColorStop(1, 'rgba(43, 124, 255, 0.02)');
@@ -110,6 +115,7 @@ export class LineChartComponent implements AfterViewInit, OnDestroy {
     const options: ChartOptions<'line'> = {
       responsive: true,
       maintainAspectRatio: false,
+      animation: reduceMotion ? false : undefined,
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
@@ -179,4 +185,3 @@ export class LineChartComponent implements AfterViewInit, OnDestroy {
     this.chart.update();
   }
 }
-
