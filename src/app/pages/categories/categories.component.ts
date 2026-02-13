@@ -1,51 +1,169 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FinanceStoreService } from '../../data/finance-store.service';
 import { createClientId } from '../../utils/id';
+import { ButtonComponent } from '../../shared/ui/button/button.component';
+import { FieldComponent } from '../../shared/ui/forms/field.component';
+import { InputDirective } from '../../shared/ui/forms/input.directive';
 
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [FormsModule, NgIf, NgFor],
+  imports: [FormsModule, NgIf, NgFor, ButtonComponent, FieldComponent, InputDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="categories">
-      <header class="categories__header">
-        <h1>Категории</h1>
-        <p>Создавайте категории расходов и доходов.</p>
+    <main class="categories">
+      <header class="glass-header categories__header">
+        <p class="glass-header__eyebrow">Раздел</p>
+        <h1 class="glass-header__title">Категории</h1>
+        <p class="glass-header__subtitle">
+          Собери базу категорий расходов. Цвет нужен для графиков и быстрых сигналов.
+        </p>
       </header>
 
-      <form class="category-form" (ngSubmit)="handleAddCategory()">
-        <label class="category-form__field">
-          <span>Цвет</span>
-          <input type="color" [(ngModel)]="categoryColor" name="categoryColor" />
-        </label>
+      <section class="glass-surface categories__card">
+        <form class="categories__form" (ngSubmit)="handleAddCategory()">
+          <div class="categories__form-row">
+            <app-field label="Цвет">
+              <input
+                class="categories__color"
+                type="color"
+                [(ngModel)]="categoryColor"
+                name="categoryColor"
+              />
+            </app-field>
 
-        <label class="category-form__field">
-          <span>Название</span>
-          <input
-            type="text"
-            placeholder="Например: Продукты"
-            [(ngModel)]="categoryName"
-            name="categoryName"
-          />
-        </label>
+            <app-field label="Название">
+              <input
+                appInput
+                type="text"
+                placeholder="Например: Продукты"
+                [(ngModel)]="categoryName"
+                name="categoryName"
+              />
+            </app-field>
+          </div>
 
-        <button class="category-form__submit" type="submit">Добавить</button>
-      </form>
+          <app-button type="submit" variant="primary" size="md">Добавить</app-button>
+        </form>
+      </section>
 
-      <div class="categories__list">
-        <p class="categories__empty" *ngIf="categories().length === 0">
-          Категории пока не добавлены.
-        </p>
-        <ul *ngIf="categories().length > 0">
-          <li class="category-card" *ngFor="let category of categories(); trackBy: trackCategory">
-            <span class="category-card__color" [style.backgroundColor]="category.color"></span>
-            <span class="category-card__name">{{ category.name }}</span>
+      <section class="glass-surface categories__card">
+        <header class="categories__list-header">
+          <h2 class="categories__list-title">Список</h2>
+          <p class="categories__list-hint">Нажми на категорию позже, чтобы фильтровать траты на главной.</p>
+        </header>
+
+        <p class="categories__empty" *ngIf="categories().length === 0">Категорий пока нет.</p>
+        <ul class="categories__list" *ngIf="categories().length > 0">
+          <li class="category-item" *ngFor="let category of categories(); trackBy: trackCategory">
+            <span class="category-item__dot" [style.background]="dot(category.color)" aria-hidden="true"></span>
+            <span class="category-item__name">{{ category.name }}</span>
           </li>
         </ul>
-      </div>
-    </section>
+      </section>
+    </main>
+  `,
+  styles: `
+    .categories {
+      display: grid;
+      gap: 18px;
+    }
+
+    .categories__card {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .categories__form {
+      display: grid;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .categories__form-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .categories__color {
+      width: 100%;
+      height: 44px;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: var(--radius-control, 12px);
+      background: rgba(255, 255, 255, 0.45);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(2, 6, 23, 0.08);
+      cursor: pointer;
+    }
+
+    .categories__list-header {
+      display: grid;
+      gap: 4px;
+    }
+
+    .categories__list-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+    }
+
+    .categories__list-hint {
+      margin: 0;
+      color: color-mix(in srgb, var(--text, #0b1020) 58%, transparent);
+    }
+
+    .categories__empty {
+      margin: 0;
+      color: color-mix(in srgb, var(--text, #0b1020) 62%, transparent);
+      font-weight: 650;
+    }
+
+    .categories__list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .category-item {
+      display: grid;
+      grid-template-columns: 14px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .category-item__dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.65);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    .category-item__name {
+      font-weight: 850;
+      letter-spacing: -0.01em;
+      color: rgba(11, 16, 32, 0.92);
+    }
+
+    @media (max-width: 699.98px) {
+      .categories__form-row {
+        grid-template-columns: 1fr;
+      }
+    }
   `,
 })
 export class CategoriesComponent {
@@ -77,5 +195,9 @@ export class CategoriesComponent {
 
   trackCategory(_: number, category: { id: string }) {
     return category.id;
+  }
+
+  dot(color: string) {
+    return `radial-gradient(80% 80% at 30% 20%, rgba(255,255,255,0.65), transparent 55%), ${color}`;
   }
 }
