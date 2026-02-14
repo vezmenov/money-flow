@@ -45,6 +45,8 @@ export class FinanceStoreService {
   readonly recurringExpenses = signal<RecurringExpenseForMonth[]>([]);
   readonly recurringExpensesMonth = signal<string>('');
   readonly isExporting = signal(false);
+  readonly initState = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  readonly initError = signal<string | null>(null);
 
   constructor(private readonly api: ApiService) {}
 
@@ -142,6 +144,20 @@ export class FinanceStoreService {
   }
 
   async initStore() {
-    await Promise.all([this.loadCategories(), this.loadTransactions()]);
+    if (this.initState() === 'loading') {
+      return;
+    }
+
+    this.initState.set('loading');
+    this.initError.set(null);
+
+    try {
+      await Promise.all([this.loadCategories(), this.loadTransactions()]);
+      this.initState.set('ready');
+    } catch (error) {
+      this.initState.set('error');
+      this.initError.set(error instanceof Error ? error.message : String(error));
+      throw error;
+    }
   }
 }

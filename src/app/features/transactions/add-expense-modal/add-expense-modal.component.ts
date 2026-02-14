@@ -59,7 +59,7 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
         Будет создаваться каждый месяц в выбранный день. Старт задается датой ниже.
       </p>
 
-      <ng-container *ngIf="expenseCategories().length > 0; else noCategories">
+      <ng-container *ngIf="expenseCategories().length > 0; else emptyState">
         <form class="add-expense" [id]="formId" (ngSubmit)="handleSubmit()">
           <app-field label="Категория">
             <select appInput name="category" [(ngModel)]="selectedCategoryId" required>
@@ -110,15 +110,38 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
         </form>
       </ng-container>
 
-      <ng-template #noCategories>
-        <div class="add-expense__empty">
-          <p class="add-expense__empty-title">Сначала нужны категории</p>
-          <p class="add-expense__empty-text">
-            Без категорий дашборд будет пустой. Создай хотя бы одну категорию расходов.
-          </p>
-          <app-button variant="primary" size="md" (click)="goToCategories()">
-            Перейти в категории
-          </app-button>
+      <ng-template #emptyState>
+        <ng-container *ngIf="initState() === 'ready'; else errorState">
+          <div class="add-expense__empty">
+            <p class="add-expense__empty-title">Сначала нужны категории</p>
+            <p class="add-expense__empty-text">
+              Без категорий дашборд будет пустой. Создай хотя бы одну категорию расходов.
+            </p>
+            <app-button variant="primary" size="md" (click)="goToCategories()">
+              Перейти в категории
+            </app-button>
+          </div>
+        </ng-container>
+      </ng-template>
+
+      <ng-template #errorState>
+        <ng-container *ngIf="initState() === 'error'; else loadingState">
+          <div class="add-expense__empty">
+            <p class="add-expense__empty-title">Не удалось загрузить данные</p>
+            <p class="add-expense__empty-text">
+              {{ initError() || 'Проверь соединение и попробуй еще раз.' }}
+            </p>
+            <app-button variant="primary" size="md" (click)="retryInit()">
+              Повторить
+            </app-button>
+          </div>
+        </ng-container>
+      </ng-template>
+
+      <ng-template #loadingState>
+        <div class="add-expense__loading" aria-busy="true" aria-live="polite">
+          <p class="add-expense__loading-title">Загрузка данных…</p>
+          <p class="add-expense__loading-text">Сейчас подтянем категории и операции.</p>
         </div>
       </ng-template>
 
@@ -181,6 +204,24 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
       padding: 0.25rem 0;
     }
 
+    .add-expense__loading {
+      display: grid;
+      gap: 0.35rem;
+      padding: 0.5rem 0;
+      color: color-mix(in srgb, var(--text, #0b1020) 70%, transparent);
+    }
+
+    .add-expense__loading-title {
+      margin: 0;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      color: var(--text, #0b1020);
+    }
+
+    .add-expense__loading-text {
+      margin: 0;
+    }
+
     .add-expense__empty-title {
       margin: 0;
       font-weight: 800;
@@ -222,6 +263,8 @@ export class AddExpenseModalComponent {
   @Output() openChange = new EventEmitter<boolean>();
 
   readonly categories;
+  readonly initState;
+  readonly initError;
 
   readonly currencies = ['RUB', 'USD', 'EUR'];
 
@@ -238,6 +281,8 @@ export class AddExpenseModalComponent {
     this.store = store;
     this.router = router;
     this.categories = this.store.categories;
+    this.initState = this.store.initState;
+    this.initError = this.store.initError;
 
     // Categories may arrive after modal is opened (async store init). In that case
     // the <select> visually shows the first option, but ngModel can remain empty,
@@ -355,5 +400,11 @@ export class AddExpenseModalComponent {
   goToCategories() {
     this.handleOpenChange(false);
     void this.router.navigateByUrl('/categories');
+  }
+
+  retryInit() {
+    void this.store.initStore().catch((error) => {
+      console.error('Failed to initialize finance store', error);
+    });
   }
 }
