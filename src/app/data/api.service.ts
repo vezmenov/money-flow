@@ -80,6 +80,8 @@ export class ApiService {
   async createCategory(category: Category) {
     const payload = {
       name: category.name,
+      color: category.color,
+      type: category.type,
     };
 
     await this.request(`${API_BASE_URL}/categories`, {
@@ -91,6 +93,7 @@ export class ApiService {
   async updateCategory(category: Category) {
     const payload = {
       name: category.name,
+      color: category.color,
     };
 
     await this.request(`${API_BASE_URL}/categories/${category.id}`, {

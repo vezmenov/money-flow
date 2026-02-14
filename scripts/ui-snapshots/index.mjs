@@ -341,6 +341,29 @@ async function main() {
             guards.assertNone(`home-delete-recurring-modal-${vp.name}`);
           }
 
+          if (route.name === 'categories') {
+            const firstCategory = page.locator('[data-e2e="categories.item"]').first();
+            if (!vp.isMobile) {
+              await firstCategory.hover();
+            }
+            await firstCategory.locator('[data-e2e="categories.edit"]').click();
+            await page.waitForSelector('dialog[open][data-e2e="edit-category.modal"]', { timeout: 10_000 });
+            await page.waitForTimeout(150);
+            await page.screenshot({
+              path: path.join(OUTPUT_DIR, `categories-edit-modal-${vp.name}.png`),
+              fullPage: false,
+            });
+
+            await page.fill('[data-e2e="edit-category.name"]', 'Еда (тест)');
+            await page.waitForFunction(() => {
+              const btn = document.querySelector('[data-e2e="edit-category.save"]');
+              return btn instanceof HTMLButtonElement && !btn.disabled;
+            });
+            await page.click('[data-e2e="edit-category.save"]');
+            await page.waitForSelector('dialog[open][data-e2e="edit-category.modal"]', { state: 'hidden', timeout: 10_000 });
+            guards.assertNone(`categories-edit-modal-${vp.name}`);
+          }
+
           guards.assertNone(`${route.name}-${vp.name}`);
         }
 
