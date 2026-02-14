@@ -23,7 +23,7 @@
 - Selector: `app-button`
 - Файл: `/Users/slave/FettrCode/money-flow/src/app/shared/ui/button/button.component.ts`
 - Inputs:
-  - `variant`: `primary | secondary | ghost`
+  - `variant`: `primary | secondary | ghost | danger`
   - `size`: `sm | md | lg`
   - `type`: `button | submit | reset`
   - `disabled`, `loading`, `selected`

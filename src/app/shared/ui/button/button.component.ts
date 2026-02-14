@@ -1,7 +1,7 @@
 import { NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 @Component({
@@ -90,6 +90,20 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
         0 2px 8px rgba(59, 130, 246, 0.5);
     }
 
+    :host([data-variant='danger']) .app-button__btn {
+      color: rgba(255, 255, 255, 0.95);
+      border-color: color-mix(in srgb, var(--danger-dark, #dc2626) 70%, transparent);
+      background:
+        linear-gradient(
+          to bottom,
+          var(--danger-soft, #f87171),
+          var(--danger, #ef4444)
+        );
+      box-shadow:
+        inset 0 1px 2px rgba(255, 255, 255, 0.45),
+        0 2px 8px rgba(239, 68, 68, 0.45);
+    }
+
     :host([data-variant='secondary']) .app-button__btn {
       background:
         linear-gradient(
@@ -160,6 +174,18 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
         0 3px 12px rgba(59, 130, 246, 0.6);
     }
 
+    :host([data-variant='danger']) .app-button__btn:hover:not(:disabled) {
+      background:
+        linear-gradient(
+          to bottom,
+          color-mix(in srgb, var(--danger-soft, #f87171) 75%, white 25%),
+          var(--danger-soft, #f87171)
+        );
+      box-shadow:
+        inset 0 1px 2px rgba(255, 255, 255, 0.5),
+        0 3px 12px rgba(239, 68, 68, 0.55);
+    }
+
     .app-button__btn:hover:not(:disabled) .app-button__glint {
       opacity: 0.9;
     }
@@ -182,6 +208,18 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
       box-shadow:
         inset 0 1px 3px rgba(0, 0, 0, 0.3),
         0 1px 3px rgba(59, 130, 246, 0.3);
+    }
+
+    :host([data-variant='danger']) .app-button__btn:active:not(:disabled) {
+      background:
+        linear-gradient(
+          to bottom,
+          var(--danger, #ef4444),
+          var(--danger-dark, #dc2626)
+        );
+      box-shadow:
+        inset 0 1px 3px rgba(0, 0, 0, 0.28),
+        0 1px 3px rgba(239, 68, 68, 0.25);
     }
 
     .app-button__btn:focus-visible {
@@ -221,7 +259,8 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
     }
 
     :host([data-variant='primary']) .app-button__spinner,
-    :host([data-selected='true']) .app-button__spinner {
+    :host([data-selected='true']) .app-button__spinner,
+    :host([data-variant='danger']) .app-button__spinner {
       border-color: rgba(255, 255, 255, 0.6);
       border-top-color: rgba(255, 255, 255, 0.1);
     }

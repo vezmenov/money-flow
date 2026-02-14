@@ -1,4 +1,4 @@
-export type IconName = 'home' | 'categories' | 'dashboard' | 'plus' | 'close' | 'download';
+export type IconName = 'home' | 'categories' | 'dashboard' | 'plus' | 'close' | 'download' | 'trash';
 
 type IconDef = {
   viewBox: string;
@@ -41,5 +41,15 @@ export const ICONS: Record<IconName, IconDef> = {
   download: {
     viewBox: '0 0 24 24',
     paths: ['M12 3v11', 'M7 11l5 5 5-5', 'M5 21h14'],
+  },
+  trash: {
+    viewBox: '0 0 24 24',
+    paths: [
+      'M3 6h18',
+      'M9 6V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V6',
+      'M7 6l1 15a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-15',
+      'M10 11v8',
+      'M14 11v8',
+    ],
   },
 };

@@ -290,6 +290,36 @@ async function main() {
             await page.fill('[data-e2e="add-expense.amount"]', '');
             await page.keyboard.press('Escape');
             guards.assertNone(`home-add-recurring-modal-${vp.name}`);
+
+            // Delete flow (smoke): open confirm modal for a transaction and recurring item.
+            const firstTx = page.locator('[data-e2e="home.tx.item"]').first();
+            if (!vp.isMobile) {
+              await firstTx.hover();
+            }
+            await firstTx.locator('[data-e2e="home.tx.delete"]').click();
+            await page.waitForSelector('dialog[open][data-e2e="delete.modal"]', { timeout: 10_000 });
+            await page.waitForTimeout(150);
+            await page.screenshot({
+              path: path.join(OUTPUT_DIR, `home-delete-transaction-modal-${vp.name}.png`),
+              fullPage: false,
+            });
+            await page.click('[data-e2e="delete.cancel"]');
+            await page.waitForSelector('dialog[open][data-e2e="delete.modal"]', { state: 'hidden', timeout: 10_000 });
+            guards.assertNone(`home-delete-transaction-modal-${vp.name}`);
+
+            const firstRecurring = page.locator('[data-e2e="home.recurring.item"]').first();
+            if (!vp.isMobile) {
+              await firstRecurring.hover();
+            }
+            await firstRecurring.locator('[data-e2e="home.recurring.delete"]').click();
+            await page.waitForSelector('dialog[open][data-e2e="delete.modal"]', { timeout: 10_000 });
+            await page.waitForTimeout(150);
+            await page.screenshot({
+              path: path.join(OUTPUT_DIR, `home-delete-recurring-modal-${vp.name}.png`),
+              fullPage: false,
+            });
+            await page.keyboard.press('Escape');
+            guards.assertNone(`home-delete-recurring-modal-${vp.name}`);
           }
 
           guards.assertNone(`${route.name}-${vp.name}`);

@@ -28,3 +28,7 @@
   - добавлены `data-e2e` хуки на ключевые интерактивы (кнопки/модалка/FAB/навигация)
   - `npm run ui:snap` теперь валится на `pageerror/console.error` и делает минимальный smoke (заполнение суммы в модалке)
 - Исправлен креш в модалке при вводе суммы (`TypeError: this.amount.trim is not a function`) для `<input type="number">`.
+- Добавлено удаление трат/регулярок из UI:
+  - кнопка (корзина) в списках на главной
+  - confirm-модалка + обработка ошибок/лоадинга
+  - добавлен `trash` icon и `app-button` variant `danger`

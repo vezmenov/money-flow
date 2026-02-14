@@ -23,6 +23,11 @@ import { IconButtonComponent } from '../../shared/ui/button/icon-button.componen
 import { DateInputComponent } from '../../shared/ui/forms/date-input.component';
 import { FieldComponent } from '../../shared/ui/forms/field.component';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
+import { ModalComponent } from '../../shared/ui/modal/modal.component';
+
+type PendingDelete =
+  | { kind: 'transaction'; item: Transaction }
+  | { kind: 'recurring'; item: RecurringExpenseForMonth };
 
 @Component({
   selector: 'app-home',
@@ -41,6 +46,7 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
     IconComponent,
     IconButtonComponent,
     AddExpenseModalComponent,
+    ModalComponent,
   ],
   template: `
     <main class="home">
@@ -234,12 +240,27 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
               <li
                 *ngFor="let item of recurringSorted(); trackBy: trackRecurring"
                 class="home-recurring__item"
+                data-e2e="home.recurring.item"
+                [attr.data-recurring-id]="item.id"
               >
                 <span class="home-recurring__dot" [style.background]="categoryDot(item.categoryId)" aria-hidden="true"></span>
                 <div class="home-recurring__main">
                   <div class="home-recurring__top">
                     <span class="home-recurring__name">{{ categoryName(item.categoryId) }}</span>
-                    <span class="home-recurring__amount">{{ formatRecurringAmount(item.amount) }}</span>
+                    <span class="home-recurring__actions">
+                      <span class="home-recurring__amount">{{ formatRecurringAmount(item.amount) }}</span>
+                      <span class="home-recurring__delete">
+                        <app-icon-button
+                          icon="trash"
+                          ariaLabel="Удалить регулярную трату"
+                          e2e="home.recurring.delete"
+                          variant="danger"
+                          [size]="34"
+                          [iconSize]="18"
+                          (click)="requestDeleteRecurring(item)"
+                        />
+                      </span>
+                    </span>
                   </div>
                   <div class="home-recurring__bottom">
                     <span class="home-recurring__date">Сработает {{ item.scheduledDate }}</span>
@@ -284,7 +305,12 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
 
           <ng-container *ngIf="latestTransactions().length > 0; else emptyList">
             <ul class="home-list">
-              <li *ngFor="let transaction of latestTransactions(); trackBy: trackTransaction" class="home-list__item">
+              <li
+                *ngFor="let transaction of latestTransactions(); trackBy: trackTransaction"
+                class="home-list__item"
+                data-e2e="home.tx.item"
+                [attr.data-tx-id]="transaction.id"
+              >
                 <span
                   class="home-list__dot"
                   [style.background]="categoryDot(transaction.categoryId)"
@@ -299,8 +325,21 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
                     >
                       {{ categoryName(transaction.categoryId) }}
                     </button>
-                    <span class="home-list__amount">
-                      {{ formatAmount(transaction.amount, transaction.currency) }}
+                    <span class="home-list__actions">
+                      <span class="home-list__amount">
+                        {{ formatAmount(transaction.amount, transaction.currency) }}
+                      </span>
+                      <span class="home-list__delete">
+                        <app-icon-button
+                          icon="trash"
+                          ariaLabel="Удалить трату"
+                          e2e="home.tx.delete"
+                          variant="danger"
+                          [size]="36"
+                          [iconSize]="18"
+                          (click)="requestDeleteTransaction(transaction)"
+                        />
+                      </span>
                     </span>
                   </div>
                   <div class="home-list__bottom">
@@ -328,6 +367,62 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
         [open]="isAddOpen()"
         (openChange)="isAddOpen.set($event)"
       />
+
+      <app-modal
+        [title]="deleteTitle()"
+        size="sm"
+        [open]="pendingDelete() !== null"
+        (openChange)="handleDeleteOpenChange($event)"
+        e2e="delete.modal"
+        closeE2e="delete.close"
+      >
+        <ng-container *ngIf="pendingDelete() as target">
+          <p class="delete-confirm__text">
+            <ng-container *ngIf="target.kind === 'transaction'; else recurringDelete">
+              Удалить трату <strong>{{ categoryName(target.item.categoryId) }}</strong> на
+              <strong>{{ formatAmount(target.item.amount, target.item.currency) }}</strong> от
+              <strong>{{ target.item.date }}</strong>?
+            </ng-container>
+            <ng-template #recurringDelete>
+              Удалить регулярную трату <strong>{{ categoryName(target.item.categoryId) }}</strong> на
+              <strong>{{ formatRecurringAmount(target.item.amount) }}</strong> ({{ target.item.scheduledDate }})?
+            </ng-template>
+          </p>
+          <p class="delete-confirm__hint">Действие необратимо.</p>
+
+          <p class="delete-confirm__meta" *ngIf="target.kind === 'transaction' && target.item.note">
+            Заметка: {{ target.item.note }}
+          </p>
+          <p class="delete-confirm__meta" *ngIf="target.kind === 'recurring' && target.item.description">
+            Описание: {{ target.item.description }}
+          </p>
+
+          <p class="delete-confirm__error" *ngIf="deleteError()">{{ deleteError() }}</p>
+        </ng-container>
+
+        <div modalActions>
+          <app-button
+            variant="ghost"
+            size="md"
+            type="button"
+            e2e="delete.cancel"
+            (click)="handleDeleteOpenChange(false)"
+          >
+            Отмена
+          </app-button>
+          <app-button
+            variant="danger"
+            size="md"
+            type="button"
+            e2e="delete.confirm"
+            [loading]="isDeleting()"
+            [disabled]="isDeleting()"
+            (click)="confirmDelete()"
+          >
+            Удалить
+          </app-button>
+        </div>
+      </app-modal>
     </main>
   `,
   styles: `
@@ -523,6 +618,38 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
       gap: 10px;
     }
 
+    .home-list__actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
+    .home-list__delete {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(1px);
+      pointer-events: none;
+      transition: opacity 140ms ease, transform 140ms ease;
+    }
+
+    .home-list__item:hover .home-list__delete,
+    .home-list__item:focus-within .home-list__delete {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    @media (hover: none) {
+      .home-list__delete {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+    }
+
     .home-list__category {
       border: 1px solid rgba(255, 255, 255, 0.35);
       background:
@@ -654,6 +781,38 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
       gap: 10px;
     }
 
+    .home-recurring__actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
+    .home-recurring__delete {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(1px);
+      pointer-events: none;
+      transition: opacity 140ms ease, transform 140ms ease;
+    }
+
+    .home-recurring__item:hover .home-recurring__delete,
+    .home-recurring__item:focus-within .home-recurring__delete {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    @media (hover: none) {
+      .home-recurring__delete {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+    }
+
     .home-recurring__name {
       font-weight: 900;
       letter-spacing: -0.01em;
@@ -724,6 +883,35 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
       max-width: 100%;
     }
 
+    .delete-confirm__text {
+      margin: 0;
+      font-weight: 750;
+      letter-spacing: -0.01em;
+      color: rgba(11, 16, 32, 0.92);
+    }
+
+    .delete-confirm__hint {
+      margin: 0;
+      color: color-mix(in srgb, var(--text, #0b1020) 62%, transparent);
+      font-size: 0.9rem;
+    }
+
+    .delete-confirm__meta {
+      margin: 0;
+      color: color-mix(in srgb, var(--text, #0b1020) 65%, transparent);
+      font-size: 0.9rem;
+    }
+
+    .delete-confirm__error {
+      margin: 0;
+      padding: 0.55rem 0.65rem;
+      border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--danger-dark, #dc2626) 40%, transparent);
+      background: color-mix(in srgb, var(--danger, #ef4444) 14%, transparent);
+      color: color-mix(in srgb, var(--danger-dark, #dc2626) 85%, var(--text, #0b1020) 15%);
+      font-weight: 700;
+    }
+
     @media (max-width: 900px) {
       .home__grid {
         grid-template-columns: 1fr;
@@ -779,6 +967,17 @@ export class HomeComponent {
   readonly activeCategoryId = signal<string | null>(null);
   readonly isAddOpen = signal(false);
   readonly addMode = signal<'oneTime' | 'recurring'>('oneTime');
+  readonly pendingDelete = signal<PendingDelete | null>(null);
+  readonly isDeleting = signal(false);
+  readonly deleteError = signal('');
+
+  readonly deleteTitle = computed(() => {
+    const target = this.pendingDelete();
+    if (!target) {
+      return 'Удалить';
+    }
+    return target.kind === 'transaction' ? 'Удалить трату' : 'Удалить регулярную трату';
+  });
 
   constructor(private readonly store: FinanceStoreService) {
     effect(() => {
@@ -1016,6 +1215,48 @@ export class HomeComponent {
     void this.store.exportXlsx().catch((error) => {
       console.error('Failed to export XLSX', error);
     });
+  }
+
+  requestDeleteTransaction(transaction: Transaction) {
+    this.deleteError.set('');
+    this.pendingDelete.set({ kind: 'transaction', item: transaction });
+  }
+
+  requestDeleteRecurring(item: RecurringExpenseForMonth) {
+    this.deleteError.set('');
+    this.pendingDelete.set({ kind: 'recurring', item });
+  }
+
+  handleDeleteOpenChange(open: boolean) {
+    if (open) {
+      return;
+    }
+    this.pendingDelete.set(null);
+    this.deleteError.set('');
+    this.isDeleting.set(false);
+  }
+
+  async confirmDelete() {
+    const target = this.pendingDelete();
+    if (!target || this.isDeleting()) {
+      return;
+    }
+
+    this.isDeleting.set(true);
+    this.deleteError.set('');
+    try {
+      if (target.kind === 'transaction') {
+        await this.store.removeTransaction(target.item.id);
+      } else {
+        await this.store.removeRecurringExpense(target.item.id);
+      }
+      this.pendingDelete.set(null);
+    } catch (error) {
+      console.error('Failed to delete item', error);
+      this.deleteError.set('Не удалось удалить. Попробуй еще раз.');
+    } finally {
+      this.isDeleting.set(false);
+    }
   }
 
   periodShortLabel() {
