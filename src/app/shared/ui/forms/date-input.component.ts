@@ -20,6 +20,7 @@ import { InputDirective } from './input.directive';
       class="app-date-input"
       type="date"
       [attr.aria-label]="ariaLabel || null"
+      [attr.data-e2e]="e2e || null"
       [attr.name]="name || null"
       [attr.min]="min || null"
       [attr.max]="max || null"
@@ -40,6 +41,7 @@ export class DateInputComponent implements ControlValueAccessor {
   @Input() min = '';
   @Input() max = '';
   @Input() ariaLabel = '';
+  @Input() e2e = '';
 
   value = '';
   isDisabled = false;
@@ -70,4 +72,3 @@ export class DateInputComponent implements ControlValueAccessor {
     this.onChange(nextValue);
   }
 }
-

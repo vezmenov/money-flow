@@ -27,6 +27,34 @@ const ROUTES = [
   { name: 'dashboards', hash: '#/dashboards', ready: 'main.dashboards' },
 ];
 
+function attachGuards(page) {
+  const errors = [];
+
+  page.on('pageerror', (error) => {
+    errors.push({ type: 'pageerror', text: error?.message ?? String(error) });
+  });
+
+  page.on('console', (message) => {
+    if (message.type() !== 'error') {
+      return;
+    }
+    errors.push({ type: 'console', text: message.text() });
+  });
+
+  return {
+    clear() {
+      errors.splice(0, errors.length);
+    },
+    assertNone(context) {
+      if (errors.length === 0) {
+        return;
+      }
+      const formatted = errors.map((entry) => `[${entry.type}] ${entry.text}`).join('\n');
+      throw new Error(`[ui:snap] JS errors during "${context}":\n${formatted}`);
+    },
+  };
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -207,8 +235,10 @@ async function main() {
 
         const page = await context.newPage();
         await page.emulateMedia({ reducedMotion: 'reduce' });
+        const guards = attachGuards(page);
 
         for (const route of ROUTES) {
+          guards.clear();
           const url = `${BASE_URL}/${route.hash}`;
           await page.goto(url, { waitUntil: 'networkidle' });
           await page.waitForSelector(route.ready, { timeout: 10_000 });
@@ -226,24 +256,43 @@ async function main() {
           });
 
           if (route.name === 'home') {
-            await page.click('app-fab .app-fab__btn');
-            await page.waitForSelector('dialog[open]', { timeout: 10_000 });
+            await page.click('[data-e2e="home.fab.add"]');
+            await page.waitForSelector('dialog[open][data-e2e="add-expense.modal"]', { timeout: 10_000 });
             await page.waitForTimeout(150);
-          await page.screenshot({
-            path: path.join(OUTPUT_DIR, `home-add-modal-${vp.name}.png`),
-            fullPage: false,
-          });
-          await page.keyboard.press('Escape');
+            await page.screenshot({
+              path: path.join(OUTPUT_DIR, `home-add-modal-${vp.name}.png`),
+              fullPage: false,
+            });
 
-            await page.click('button[aria-label="Добавить регулярную трату"]');
-            await page.waitForSelector('dialog[open]', { timeout: 10_000 });
+            // Smoke-check: ensure amount input can be filled and "Сохранить" enables without runtime errors.
+            await page.fill('[data-e2e="add-expense.amount"]', '5000');
+            await page.waitForFunction(() => {
+              const btn = document.querySelector('[data-e2e="add-expense.save"]');
+              return btn instanceof HTMLButtonElement && !btn.disabled;
+            });
+            await page.fill('[data-e2e="add-expense.amount"]', '');
+            await page.keyboard.press('Escape');
+            guards.assertNone(`home-add-modal-${vp.name}`);
+
+            await page.click('[data-e2e="home.recurring.add"]');
+            await page.waitForSelector('dialog[open][data-e2e="add-expense.modal"]', { timeout: 10_000 });
             await page.waitForTimeout(150);
             await page.screenshot({
               path: path.join(OUTPUT_DIR, `home-add-recurring-modal-${vp.name}.png`),
               fullPage: false,
             });
+
+            await page.fill('[data-e2e="add-expense.amount"]', '5000');
+            await page.waitForFunction(() => {
+              const btn = document.querySelector('[data-e2e="add-expense.save"]');
+              return btn instanceof HTMLButtonElement && !btn.disabled;
+            });
+            await page.fill('[data-e2e="add-expense.amount"]', '');
             await page.keyboard.press('Escape');
+            guards.assertNone(`home-add-recurring-modal-${vp.name}`);
           }
+
+          guards.assertNone(`${route.name}-${vp.name}`);
         }
 
         await context.close();

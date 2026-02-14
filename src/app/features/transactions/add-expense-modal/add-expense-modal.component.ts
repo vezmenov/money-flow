@@ -33,12 +33,15 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
       (openChange)="handleOpenChange($event)"
       title="Быстро добавить трату"
       size="sm"
+      e2e="add-expense.modal"
+      closeE2e="add-expense.close"
     >
       <div class="add-expense__mode" role="group" aria-label="Тип траты">
         <app-button
           variant="secondary"
           size="sm"
           type="button"
+          e2e="add-expense.mode.one-time"
           [selected]="modeValue === 'oneTime'"
           (click)="setMode('oneTime')"
         >
@@ -48,6 +51,7 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
           variant="secondary"
           size="sm"
           type="button"
+          e2e="add-expense.mode.recurring"
           [selected]="modeValue === 'recurring'"
           (click)="setMode('recurring')"
         >
@@ -62,7 +66,13 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
       <ng-container *ngIf="expenseCategories().length > 0; else emptyState">
         <form class="add-expense" [id]="formId" (ngSubmit)="handleSubmit()">
           <app-field label="Категория">
-            <select appInput name="category" [(ngModel)]="selectedCategoryId" required>
+            <select
+              appInput
+              name="category"
+              [(ngModel)]="selectedCategoryId"
+              required
+              data-e2e="add-expense.category"
+            >
               <option *ngFor="let category of expenseCategories(); trackBy: trackCategory" [value]="category.id">
                 {{ category.name }}
               </option>
@@ -81,18 +91,19 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
                 placeholder="0.00"
                 [(ngModel)]="amount"
                 required
+                data-e2e="add-expense.amount"
               />
             </app-field>
 
             <app-field *ngIf="modeValue === 'oneTime'" label="Валюта">
-              <select appInput name="currency" [(ngModel)]="currency">
+              <select appInput name="currency" [(ngModel)]="currency" data-e2e="add-expense.currency">
                 <option *ngFor="let item of currencies" [value]="item">{{ item }}</option>
               </select>
             </app-field>
           </div>
 
           <app-field label="Дата">
-            <app-date-input name="date" [(ngModel)]="transactionDate" />
+            <app-date-input name="date" [(ngModel)]="transactionDate" e2e="add-expense.date" />
           </app-field>
 
           <app-field
@@ -105,6 +116,7 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
               rows="3"
               placeholder="Например: кофе, доставка"
               [(ngModel)]="note"
+              data-e2e="add-expense.note"
             ></textarea>
           </app-field>
         </form>
@@ -117,7 +129,7 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
             <p class="add-expense__empty-text">
               Без категорий дашборд будет пустой. Создай хотя бы одну категорию расходов.
             </p>
-            <app-button variant="primary" size="md" (click)="goToCategories()">
+            <app-button variant="primary" size="md" e2e="add-expense.go-to-categories" (click)="goToCategories()">
               Перейти в категории
             </app-button>
           </div>
@@ -131,7 +143,7 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
             <p class="add-expense__empty-text">
               {{ initError() || 'Проверь соединение и попробуй еще раз.' }}
             </p>
-            <app-button variant="primary" size="md" (click)="retryInit()">
+            <app-button variant="primary" size="md" e2e="add-expense.retry" (click)="retryInit()">
               Повторить
             </app-button>
           </div>
@@ -146,7 +158,13 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
       </ng-template>
 
       <div modalActions>
-        <app-button variant="ghost" size="md" type="button" (click)="handleOpenChange(false)">
+        <app-button
+          variant="ghost"
+          size="md"
+          type="button"
+          e2e="add-expense.cancel"
+          (click)="handleOpenChange(false)"
+        >
           Отмена
         </app-button>
         <app-button
@@ -154,6 +172,7 @@ export type AddExpenseMode = 'oneTime' | 'recurring';
           size="md"
           type="submit"
           [form]="formId"
+          e2e="add-expense.save"
           [disabled]="!canSubmit"
           [loading]="isSaving"
         >
@@ -269,7 +288,7 @@ export class AddExpenseModalComponent {
   readonly currencies = ['RUB', 'USD', 'EUR'];
 
   selectedCategoryId = '';
-  amount = '';
+  amount: number | null = null;
   currency = this.currencies[0]!;
   note = '';
   transactionDate = new Date().toISOString().slice(0, 10);
@@ -300,21 +319,21 @@ export class AddExpenseModalComponent {
   }
 
   get amountError() {
-    if (!this.amount.trim()) {
+    if (this.amount === null) {
       return '';
     }
-    const numeric = Number.parseFloat(this.amount);
-    if (!Number.isFinite(numeric) || numeric <= 0) {
+    if (!Number.isFinite(this.amount) || this.amount <= 0) {
       return 'Введите сумму больше нуля';
     }
     return '';
   }
 
   get canSubmit() {
-    const numericAmount = Number.parseFloat(this.amount);
+    const numericAmount = this.amount;
     return (
       !this.isSaving &&
       Boolean(this.selectedCategoryId) &&
+      typeof numericAmount === 'number' &&
       Number.isFinite(numericAmount) &&
       numericAmount > 0
     );
@@ -340,8 +359,8 @@ export class AddExpenseModalComponent {
       return;
     }
 
-    const numericAmount = Number.parseFloat(this.amount);
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+    const numericAmount = this.amount;
+    if (typeof numericAmount !== 'number' || !Number.isFinite(numericAmount) || numericAmount <= 0) {
       return;
     }
 
@@ -387,7 +406,7 @@ export class AddExpenseModalComponent {
   }
 
   private resetAfterSave() {
-    this.amount = '';
+    this.amount = null;
     this.note = '';
     this.transactionDate = new Date().toISOString().slice(0, 10);
     // Keep category and currency as "sticky" defaults.

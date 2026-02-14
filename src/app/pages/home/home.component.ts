@@ -99,15 +99,16 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
 	              <span class="home__range-value home__range-value--long">{{ period().start }} → {{ period().end }}</span>
 	              <span class="home__range-value home__range-value--short">{{ periodShortLabel() }}</span>
 	            </div>
-	            <app-button
-	              variant="secondary"
-	              size="sm"
-	              type="button"
-	              [loading]="isExporting()"
-	              ariaLabel="Экспортировать траты в XLSX"
-	              (click)="exportXlsx()"
-	            >
-	              <app-icon name="download" [size]="18" [decorative]="true" />
+            <app-button
+              variant="secondary"
+              size="sm"
+              type="button"
+              [loading]="isExporting()"
+              e2e="home.export"
+              ariaLabel="Экспортировать траты в XLSX"
+              (click)="exportXlsx()"
+            >
+              <app-icon name="download" [size]="18" [decorative]="true" />
 	              <span class="home__export-label">Экспорт</span>
 	            </app-button>
 	          </div>
@@ -205,6 +206,7 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
 	            <app-icon-button
 	              icon="plus"
 	              ariaLabel="Добавить регулярную трату"
+                e2e="home.recurring.add"
 	              variant="success"
 	              [size]="42"
 	              [iconSize]="20"
@@ -320,7 +322,7 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
         </section>
       </section>
 
-      <app-fab (click)="openAddModal('oneTime')" />
+      <app-fab e2e="home.fab.add" (click)="openAddModal('oneTime')" />
       <app-add-expense-modal
         [mode]="addMode()"
         [open]="isAddOpen()"

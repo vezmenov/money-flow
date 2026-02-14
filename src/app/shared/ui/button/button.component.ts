@@ -20,6 +20,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
       class="app-button__btn"
       [attr.type]="type"
       [attr.form]="form || null"
+      [attr.data-e2e]="e2e || null"
       [disabled]="disabled || loading"
       [attr.aria-label]="ariaLabel || null"
       [attr.aria-pressed]="selected ? 'true' : null"
@@ -241,4 +242,5 @@ export class ButtonComponent {
   @Input() loading = false;
   @Input() selected = false;
   @Input() ariaLabel = '';
+  @Input() e2e = '';
 }

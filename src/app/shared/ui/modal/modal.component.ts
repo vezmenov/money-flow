@@ -28,6 +28,7 @@ let nextModalId = 0;
     <dialog
       #dialog
       class="app-modal__dialog"
+      [attr.data-e2e]="e2e || null"
       (click)="handleBackdropClick($event)"
       (cancel)="handleCancel($event)"
       (close)="handleNativeClose()"
@@ -36,7 +37,13 @@ let nextModalId = 0;
       <section class="app-modal__sheet" role="document">
         <header class="app-modal__header">
           <div class="app-modal__title" [id]="titleId">{{ title }}</div>
-          <button class="app-modal__close" type="button" (click)="requestClose()" aria-label="Закрыть">
+          <button
+            class="app-modal__close"
+            type="button"
+            (click)="requestClose()"
+            aria-label="Закрыть"
+            [attr.data-e2e]="closeE2e || null"
+          >
             <app-icon name="close" [size]="18" [decorative]="true" />
           </button>
         </header>
@@ -188,6 +195,8 @@ export class ModalComponent implements AfterViewInit {
   @Input() title = '';
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
   @Input() hasActions = true;
+  @Input() e2e = '';
+  @Input() closeE2e = '';
 
   @Input() open = false;
   @Output() openChange = new EventEmitter<boolean>();

@@ -28,6 +28,7 @@
   - `type`: `button | submit | reset`
   - `disabled`, `loading`, `selected`
   - `form` (для сабмита формы из модального футера)
+  - `e2e` (строка): проставляет `data-e2e` на реальный `<button>` внутри (для стабильных E2E/Playwright селекторов)
 
 Пример:
 ```html
@@ -41,6 +42,7 @@
 - Inputs:
   - `icon` (обязательный)
   - `ariaLabel`
+  - `e2e` (строка): `data-e2e` на внутренний `<button>`
   - `variant`: `neutral | primary | success | danger`
   - `size`, `iconSize`, `disabled`
 
@@ -53,6 +55,9 @@
 - Selector: `app-fab`
 - Файл: `/Users/slave/FettrCode/money-flow/src/app/shared/ui/button/fab.component.ts`
 - Назначение: большой “+” справа снизу, учитывает bottom bar через `--app-bottom-inset`.
+- Inputs:
+  - `ariaLabel`
+  - `e2e` (строка): `data-e2e` на внутренний `<button>`
 
 ### Поля формы
 - Selector: `app-field`
@@ -75,6 +80,8 @@
 - Selector: `app-date-input`
 - Файл: `/Users/slave/FettrCode/money-flow/src/app/shared/ui/forms/date-input.component.ts`
 - Реализован как `ControlValueAccessor`, можно использовать с `[(ngModel)]`.
+- Inputs:
+  - `e2e` (строка): `data-e2e` на `<input type="date">`
 
 ### Модалка
 - Selector: `app-modal`
@@ -83,6 +90,9 @@
 - Фичи:
   - ESC/backdrop close
   - фокус-обводка и стеклянная “sheet”
+- Inputs (E2E):
+  - `e2e` (строка): `data-e2e` на `<dialog>`
+  - `closeE2e` (строка): `data-e2e` на кнопку закрытия
 
 Проекция:
 - контент модалки: обычный контент

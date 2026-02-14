@@ -18,6 +18,7 @@ import { IconName } from '../../shared/ui/icon/icons';
         routerLinkActive="is-active"
         [routerLinkActiveOptions]="{ exact: item.exact }"
         [attr.aria-label]="item.label"
+        [attr.data-e2e]="item.e2e"
       >
         <span class="app-nav__icon" aria-hidden="true">
           <app-icon [name]="item.icon" [size]="18" [decorative]="true" />
@@ -176,10 +177,10 @@ import { IconName } from '../../shared/ui/icon/icons';
   `,
 })
 export class NavComponent {
-  readonly items: Array<{ path: string; label: string; icon: IconName; exact: boolean }> = [
-    { path: '/', label: 'Главная', icon: 'home', exact: true },
-    { path: '/categories', label: 'Категории', icon: 'categories', exact: false },
-    { path: '/dashboards', label: 'Дашборды', icon: 'dashboard', exact: false },
+  readonly items: Array<{ path: string; label: string; icon: IconName; exact: boolean; e2e: string }> = [
+    { path: '/', label: 'Главная', icon: 'home', exact: true, e2e: 'nav.home' },
+    { path: '/categories', label: 'Категории', icon: 'categories', exact: false, e2e: 'nav.categories' },
+    { path: '/dashboards', label: 'Дашборды', icon: 'dashboard', exact: false, e2e: 'nav.dashboards' },
   ];
 
   trackItem(_: number, item: { path: string }) {

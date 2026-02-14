@@ -14,8 +14,9 @@ import { IconName } from '../icon/icons';
     <button
       class="app-fab__btn"
       type="button"
+      [attr.data-e2e]="e2e || null"
       [disabled]="disabled"
-      [attr.aria-label]="ariaLabel"
+      [attr.aria-label]="ariaLabel || null"
     >
       <span class="app-fab__ring" aria-hidden="true"></span>
       <app-icon [name]="icon" [size]="22" [decorative]="true" />
@@ -111,5 +112,6 @@ import { IconName } from '../icon/icons';
 export class FabComponent {
   @Input() icon: IconName = 'plus';
   @Input() ariaLabel = 'Добавить трату';
+  @Input() e2e = '';
   @Input() disabled = false;
 }

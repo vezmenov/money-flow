@@ -18,8 +18,9 @@ export type IconButtonVariant = 'neutral' | 'primary' | 'success' | 'danger';
     <button
       class="app-icon-button__btn"
       [attr.type]="type"
+      [attr.data-e2e]="e2e || null"
       [disabled]="disabled"
-      [attr.aria-label]="ariaLabel"
+      [attr.aria-label]="ariaLabel || null"
     >
       <span class="app-icon-button__glint" aria-hidden="true"></span>
       <app-icon [name]="icon" [size]="iconSize" [decorative]="true" />
@@ -221,6 +222,7 @@ export type IconButtonVariant = 'neutral' | 'primary' | 'success' | 'danger';
 export class IconButtonComponent {
   @Input({ required: true }) icon!: IconName;
   @Input() ariaLabel = '';
+  @Input() e2e = '';
   @Input() variant: IconButtonVariant = 'neutral';
   @Input() size = 36;
   @Input() iconSize = 18;
