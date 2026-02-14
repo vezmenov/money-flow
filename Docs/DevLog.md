@@ -18,3 +18,5 @@
 - Экспорт данных в XLSX:
   - кнопка “Экспорт” на главной
   - backend `GET /api/export/xlsx`
+- Auth:
+  - UI добавляет `x-api-key`, если задан `VITE_APP_API_KEY` (для backend `APP_API_KEY`)

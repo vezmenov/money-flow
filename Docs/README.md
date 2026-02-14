@@ -8,5 +8,6 @@
 - `Docs/Dashboard.md` — дашборд трат: метрики, агрегации, интерактив.
 - `Docs/Transactions.md` — быстрое добавление траты (FAB + модалка).
 - `Docs/Recurring.md` — регулярные траты: дашборд + добавление через общий модал.
+- `Docs/Auth.md` — `x-api-key` (APP_API_KEY) между UI и backend.
 - `Docs/Snapshots.md` — детерминированные UI-скриншоты через Playwright (для итераций по внешке).
 - `Docs/DevLog.md` — краткий лог работ.

@@ -4,6 +4,7 @@ import { Category, Transaction } from './finance-store.service';
 const API_BASE_URL = '/api';
 const DEFAULT_CATEGORY_COLOR = '#3b82f6';
 const DEFAULT_CURRENCY = 'RUB';
+const APP_API_KEY = String(import.meta.env.VITE_APP_API_KEY ?? '').trim();
 
 type BackendCategory = {
   id: string;
@@ -162,6 +163,7 @@ export class ApiService {
 	    method: 'GET',
 	    headers: {
 	      Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+	      ...(APP_API_KEY ? { 'x-api-key': APP_API_KEY } : {}),
 	    },
 	  });
 
@@ -182,9 +184,10 @@ export class ApiService {
 	    ...init,
 	    headers: {
 	      'Content-Type': 'application/json',
-        ...(init?.headers ?? {}),
-      },
-    });
+	      ...(APP_API_KEY ? { 'x-api-key': APP_API_KEY } : {}),
+	      ...(init?.headers ?? {}),
+	    },
+	  });
 
     if (!response.ok) {
       throw new Error(`API request failed: ${response.status}`);
