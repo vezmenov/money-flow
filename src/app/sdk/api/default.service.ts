@@ -56,6 +56,50 @@ export class DefaultService extends BaseService {
     }
 
     /**
+     * Download SQLite backup (.gz)
+     * @endpoint get /backup/sqlite
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public backupSqliteGet(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/gzip', context?: HttpContext, transferCache?: boolean}): Observable<Blob>;
+    public backupSqliteGet(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/gzip', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Blob>>;
+    public backupSqliteGet(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/gzip', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Blob>>;
+    public backupSqliteGet(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/gzip', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarHeaders = this.defaultHeaders;
+
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/gzip'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let localVarPath = `/backup/sqlite`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: "blob",
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * List categories
      * @endpoint get /categories
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -68,6 +112,9 @@ export class DefaultService extends BaseService {
     public categoriesGet(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
+
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
             'application/json'
@@ -124,6 +171,9 @@ export class DefaultService extends BaseService {
         }
 
         let localVarHeaders = this.defaultHeaders;
+
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
         ]);
@@ -183,6 +233,9 @@ export class DefaultService extends BaseService {
         }
 
         let localVarHeaders = this.defaultHeaders;
+
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
             'application/json'
@@ -250,6 +303,9 @@ export class DefaultService extends BaseService {
 
         let localVarHeaders = this.defaultHeaders;
 
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
+
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
             'application/json'
         ]);
@@ -311,6 +367,9 @@ export class DefaultService extends BaseService {
     public exportXlsxGet(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
+
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -392,6 +451,58 @@ export class DefaultService extends BaseService {
     }
 
     /**
+     * Readiness check (DB ping)
+     * @endpoint get /ready
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public readyGet(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HealthGet200Response>;
+    public readyGet(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<HealthGet200Response>>;
+    public readyGet(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<HealthGet200Response>>;
+    public readyGet(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/ready`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<HealthGet200Response>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * List recurring expenses for a month
      * @endpoint get /recurring-expenses
      * @param month Month in YYYY-MM format. Defaults to current month in user timezone.
@@ -416,6 +527,9 @@ export class DefaultService extends BaseService {
 
 
         let localVarHeaders = this.defaultHeaders;
+
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
             'application/json'
@@ -474,6 +588,9 @@ export class DefaultService extends BaseService {
 
         let localVarHeaders = this.defaultHeaders;
 
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
+
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
         ]);
         if (localVarHttpHeaderAcceptSelected !== undefined) {
@@ -528,6 +645,9 @@ export class DefaultService extends BaseService {
         }
 
         let localVarHeaders = this.defaultHeaders;
+
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
             'application/json'
@@ -591,6 +711,9 @@ export class DefaultService extends BaseService {
 
         let localVarHeaders = this.defaultHeaders;
 
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
+
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
             'application/json'
         ]);
@@ -647,6 +770,9 @@ export class DefaultService extends BaseService {
 
         let localVarHeaders = this.defaultHeaders;
 
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
+
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
             'application/json'
         ]);
@@ -698,16 +824,81 @@ export class DefaultService extends BaseService {
     /**
      * List transactions
      * @endpoint get /transactions
+     * @param from Start date (inclusive)
+     * @param to End date (inclusive)
+     * @param categoryId 
+     * @param source 
+     * @param limit Pagination limit (default 100)
+     * @param offset Pagination offset (default 0)
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public transactionsGet(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Transaction>>;
-    public transactionsGet(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Transaction>>>;
-    public transactionsGet(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Transaction>>>;
-    public transactionsGet(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public transactionsGet(from?: string, to?: string, categoryId?: string, source?: string, limit?: number, offset?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Transaction>>;
+    public transactionsGet(from?: string, to?: string, categoryId?: string, source?: string, limit?: number, offset?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Transaction>>>;
+    public transactionsGet(from?: string, to?: string, categoryId?: string, source?: string, limit?: number, offset?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Transaction>>>;
+    public transactionsGet(from?: string, to?: string, categoryId?: string, source?: string, limit?: number, offset?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'from',
+            <any>from,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'to',
+            <any>to,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'categoryId',
+            <any>categoryId,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'source',
+            <any>source,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'limit',
+            <any>limit,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'offset',
+            <any>offset,
+            QueryParamStyle.Form,
+            true,
+        );
+
 
         let localVarHeaders = this.defaultHeaders;
+
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
             'application/json'
@@ -737,6 +928,7 @@ export class DefaultService extends BaseService {
         return this.httpClient.request<Array<Transaction>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                params: localVarQueryParameters.toHttpParams(),
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
@@ -764,6 +956,9 @@ export class DefaultService extends BaseService {
         }
 
         let localVarHeaders = this.defaultHeaders;
+
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
         ]);
@@ -823,6 +1018,9 @@ export class DefaultService extends BaseService {
         }
 
         let localVarHeaders = this.defaultHeaders;
+
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
             'application/json'
@@ -889,6 +1087,9 @@ export class DefaultService extends BaseService {
         }
 
         let localVarHeaders = this.defaultHeaders;
+
+        // authentication (ApiKeyAuth) required
+        localVarHeaders = this.configuration.addCredentialToHeaders('ApiKeyAuth', 'x-api-key', localVarHeaders);
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
             'application/json'

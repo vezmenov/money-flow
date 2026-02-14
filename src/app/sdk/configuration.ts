@@ -90,6 +90,17 @@ constructor({ accessToken, apiKeys, basePath, credentials, encodeParam, encoder,
         }
         this.encodeParam = encodeParam ?? (param => this.defaultEncodeParam(param));
         this.credentials = credentials ?? {};
+
+        // init default ApiKeyAuth credential
+        if (!this.credentials['ApiKeyAuth']) {
+            this.credentials['ApiKeyAuth'] = () => {
+                if (this.apiKeys === null || this.apiKeys === undefined) {
+                    return undefined;
+                } else {
+                    return this.apiKeys['ApiKeyAuth'] || this.apiKeys['x-api-key'];
+                }
+            };
+        }
     }
 
     /**
