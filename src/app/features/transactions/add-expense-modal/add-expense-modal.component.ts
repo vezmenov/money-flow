@@ -1,5 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CreateRecurringExpense, FinanceStoreService, Transaction } from '../../../data/finance-store.service';
@@ -238,6 +238,16 @@ export class AddExpenseModalComponent {
     this.store = store;
     this.router = router;
     this.categories = this.store.categories;
+
+    // Categories may arrive after modal is opened (async store init). In that case
+    // the <select> visually shows the first option, but ngModel can remain empty,
+    // which keeps "Сохранить" disabled. Ensure defaults whenever categories update.
+    effect(() => {
+      void this.categories();
+      if (this.isOpen) {
+        this.ensureDefaults();
+      }
+    });
   }
 
   expenseCategories() {
