@@ -13,6 +13,7 @@
 - Файлы:
   - `/Users/slave/FettrCode/money-flow/src/app/shared/ui/icon/icon.component.ts`
   - `/Users/slave/FettrCode/money-flow/src/app/shared/ui/icon/icons.ts`
+- Доступные имена (основные): `home`, `categories`, `dashboard`, `plus`, `close`, `download`, `trash`, `edit`.
 
 Пример:
 ```html

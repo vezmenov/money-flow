@@ -1,4 +1,12 @@
-export type IconName = 'home' | 'categories' | 'dashboard' | 'plus' | 'close' | 'download' | 'trash';
+export type IconName =
+  | 'home'
+  | 'categories'
+  | 'dashboard'
+  | 'plus'
+  | 'close'
+  | 'download'
+  | 'trash'
+  | 'edit';
 
 type IconDef = {
   viewBox: string;
@@ -50,6 +58,13 @@ export const ICONS: Record<IconName, IconDef> = {
       'M7 6l1 15a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-15',
       'M10 11v8',
       'M14 11v8',
+    ],
+  },
+  edit: {
+    viewBox: '0 0 24 24',
+    paths: [
+      'M3 21h4l12-12a2.5 2.5 0 0 0 0-3.5l-.5-.5a2.5 2.5 0 0 0-3.5 0L3 17v4z',
+      'M14 6l4 4',
     ],
   },
 };

@@ -291,8 +291,27 @@ async function main() {
             await page.keyboard.press('Escape');
             guards.assertNone(`home-add-recurring-modal-${vp.name}`);
 
-            // Delete flow (smoke): open confirm modal for a transaction and recurring item.
+            // Edit flow (smoke): open edit modal for the first transaction.
             const firstTx = page.locator('[data-e2e="home.tx.item"]').first();
+            if (!vp.isMobile) {
+              await firstTx.hover();
+            }
+            await firstTx.locator('[data-e2e="home.tx.edit"]').click();
+            await page.waitForSelector('dialog[open][data-e2e="edit-expense.modal"]', { timeout: 10_000 });
+            await page.waitForTimeout(150);
+            await page.screenshot({
+              path: path.join(OUTPUT_DIR, `home-edit-transaction-modal-${vp.name}.png`),
+              fullPage: false,
+            });
+            await page.fill('[data-e2e="edit-expense.amount"]', '5100');
+            await page.waitForFunction(() => {
+              const btn = document.querySelector('[data-e2e="edit-expense.save"]');
+              return btn instanceof HTMLButtonElement && !btn.disabled;
+            });
+            await page.keyboard.press('Escape');
+            guards.assertNone(`home-edit-transaction-modal-${vp.name}`);
+
+            // Delete flow (smoke): open confirm modal for a transaction and recurring item.
             if (!vp.isMobile) {
               await firstTx.hover();
             }

@@ -14,6 +14,7 @@ import {
   parseIsoDate,
 } from '../../features/dashboard/dashboard.selectors';
 import { AddExpenseModalComponent } from '../../features/transactions/add-expense-modal/add-expense-modal.component';
+import { EditExpenseModalComponent } from '../../features/transactions/edit-expense-modal/edit-expense-modal.component';
 import { BarChartComponent } from '../../shared/charts/bar-chart.component';
 import { DonutChartComponent } from '../../shared/charts/donut-chart.component';
 import { LineChartComponent } from '../../shared/charts/line-chart.component';
@@ -46,6 +47,7 @@ type PendingDelete =
     IconComponent,
     IconButtonComponent,
     AddExpenseModalComponent,
+    EditExpenseModalComponent,
     ModalComponent,
   ],
   template: `
@@ -329,7 +331,16 @@ type PendingDelete =
                       <span class="home-list__amount">
                         {{ formatAmount(transaction.amount, transaction.currency) }}
                       </span>
-                      <span class="home-list__delete">
+                      <span class="home-list__tools">
+                        <app-icon-button
+                          icon="edit"
+                          ariaLabel="Редактировать трату"
+                          e2e="home.tx.edit"
+                          variant="neutral"
+                          [size]="36"
+                          [iconSize]="18"
+                          (click)="openEditModal(transaction)"
+                        />
                         <app-icon-button
                           icon="trash"
                           ariaLabel="Удалить трату"
@@ -366,6 +377,12 @@ type PendingDelete =
         [mode]="addMode()"
         [open]="isAddOpen()"
         (openChange)="isAddOpen.set($event)"
+      />
+
+      <app-edit-expense-modal
+        [open]="isEditOpen()"
+        [transaction]="editTransaction()"
+        (openChange)="handleEditOpenChange($event)"
       />
 
       <app-modal
@@ -625,25 +642,26 @@ type PendingDelete =
       white-space: nowrap;
     }
 
-    .home-list__delete {
+    .home-list__tools {
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 8px;
       opacity: 0;
       transform: translateY(1px);
       pointer-events: none;
       transition: opacity 140ms ease, transform 140ms ease;
     }
 
-    .home-list__item:hover .home-list__delete,
-    .home-list__item:focus-within .home-list__delete {
+    .home-list__item:hover .home-list__tools,
+    .home-list__item:focus-within .home-list__tools {
       opacity: 1;
       transform: translateY(0);
       pointer-events: auto;
     }
 
     @media (hover: none) {
-      .home-list__delete {
+      .home-list__tools {
         opacity: 1;
         transform: none;
         pointer-events: auto;
@@ -967,6 +985,8 @@ export class HomeComponent {
   readonly activeCategoryId = signal<string | null>(null);
   readonly isAddOpen = signal(false);
   readonly addMode = signal<'oneTime' | 'recurring'>('oneTime');
+  readonly isEditOpen = signal(false);
+  readonly editTransaction = signal<Transaction | null>(null);
   readonly pendingDelete = signal<PendingDelete | null>(null);
   readonly isDeleting = signal(false);
   readonly deleteError = signal('');
@@ -1207,8 +1227,29 @@ export class HomeComponent {
   }
 
   openAddModal(mode: 'oneTime' | 'recurring') {
+    // Keep only one modal open at a time.
+    this.isEditOpen.set(false);
+    this.editTransaction.set(null);
+    this.pendingDelete.set(null);
     this.addMode.set(mode);
     this.isAddOpen.set(true);
+  }
+
+  openEditModal(transaction: Transaction) {
+    // Keep only one modal open at a time.
+    this.isAddOpen.set(false);
+    this.pendingDelete.set(null);
+    this.deleteError.set('');
+
+    this.editTransaction.set(transaction);
+    this.isEditOpen.set(true);
+  }
+
+  handleEditOpenChange(open: boolean) {
+    this.isEditOpen.set(open);
+    if (!open) {
+      this.editTransaction.set(null);
+    }
   }
 
   exportXlsx() {
@@ -1218,11 +1259,21 @@ export class HomeComponent {
   }
 
   requestDeleteTransaction(transaction: Transaction) {
+    // Keep only one modal open at a time.
+    this.isAddOpen.set(false);
+    this.isEditOpen.set(false);
+    this.editTransaction.set(null);
+
     this.deleteError.set('');
     this.pendingDelete.set({ kind: 'transaction', item: transaction });
   }
 
   requestDeleteRecurring(item: RecurringExpenseForMonth) {
+    // Keep only one modal open at a time.
+    this.isAddOpen.set(false);
+    this.isEditOpen.set(false);
+    this.editTransaction.set(null);
+
     this.deleteError.set('');
     this.pendingDelete.set({ kind: 'recurring', item });
   }
