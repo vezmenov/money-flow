@@ -12,5 +12,15 @@
 export interface Category { 
     id: string;
     name: string;
+    type: Category.TypeEnum;
+    color: string;
 }
+export namespace Category {
+    export const TypeEnum = {
+        Expense: 'expense',
+        Income: 'income'
+    } as const;
+    export type TypeEnum = typeof TypeEnum[keyof typeof TypeEnum];
+}
+
 

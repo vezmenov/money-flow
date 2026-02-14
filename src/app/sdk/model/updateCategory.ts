@@ -11,5 +11,15 @@
 
 export interface UpdateCategory { 
     name?: string;
+    type?: UpdateCategory.TypeEnum;
+    color?: string;
 }
+export namespace UpdateCategory {
+    export const TypeEnum = {
+        Expense: 'expense',
+        Income: 'income'
+    } as const;
+    export type TypeEnum = typeof TypeEnum[keyof typeof TypeEnum];
+}
+
 
