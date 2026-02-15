@@ -62,7 +62,7 @@ body {
   min-height: 100dvh;
   background: #0f5196;
   color: var(--text);
-  overflow-x: hidden;
+  overflow: hidden;
   position: relative;
 }
 
@@ -114,7 +114,7 @@ a {
 }
 
 .app-layout {
-  min-height: 100dvh;
+  height: 100dvh;
   padding: var(--page-pad);
 }
 
@@ -122,18 +122,23 @@ a {
   width: min(1240px, 100%);
   margin: 0 auto;
   display: grid;
+  grid-template-rows: 1fr;
   gap: 18px;
+  height: 100%;
+  min-height: 0;
 }
 
 .app-main {
   min-width: 0;
   padding-bottom: var(--app-bottom-inset);
+  min-height: 0;
+  overflow: auto;
 }
 
 @media (min-width: 700px) {
   .app-frame {
     grid-template-columns: var(--sidebar-w) 1fr;
-    align-items: start;
+    align-items: stretch;
   }
 }
 
