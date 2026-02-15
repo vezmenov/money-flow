@@ -52,13 +52,10 @@ type PendingDelete =
   ],
   template: `
     <main class="home">
-      <header class="glass-header home__header">
-        <p class="glass-header__eyebrow">Money Flow</p>
-        <h1 class="glass-header__title">Дашборд трат</h1>
-        <p class="glass-header__subtitle">
-          Динамика, категории и быстрый ввод. Стекло снаружи, пластик внутри.
-        </p>
-      </header>
+	      <header class="glass-header home__header">
+	        <p class="glass-header__eyebrow">Money Flow</p>
+	        <h1 class="glass-header__title">Дашборд трат</h1>
+	      </header>
 
 	      <section class="glass-surface home__filters">
 	        <div class="home__filters-top">
